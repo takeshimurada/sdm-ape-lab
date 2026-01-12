@@ -249,12 +249,17 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                     <button
                       onMouseEnter={() => setIsHoveringBtn(true)}
                       onMouseLeave={() => setIsHoveringBtn(false)}
-                      onClick={(e) => { e.stopPropagation(); onTranslateSystem(); }}
-                      className="pointer-events-auto cursor-none"
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        console.log('????? button clicked!');
+                        onTranslateSystem(); 
+                      }}
+                      className="cursor-none"
                       style={{ 
                         all: 'unset',
                         cursor: 'none',
                         display: 'inline-block',
+                        pointerEvents: 'auto',
                       }}
                     >
                       <motion.span
