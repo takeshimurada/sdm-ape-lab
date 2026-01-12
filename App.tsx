@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI } from "@google/genai";
 import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
 import ArchiveGrid from './components/ArchiveGrid';
@@ -10,6 +9,20 @@ import ArchiveGrid from './components/ArchiveGrid';
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
 const MODEL_URL = '/face-v2.glb';
 const LOADER_DURATION = 500;
+
+// Random language translations (fallback when no API)
+const TRANSLATIONS: Record<string, string> = {
+  'es': 'Hola. Encantado de conocerte. Investigo la relación humano-naturaleza.',
+  'fr': 'Bonjour. Ravi de vous rencontrer. J\'étudie la relation humain-nature.',
+  'de': 'Hallo. Sehr erfreut. Ich erforsche die Mensch-Natur-Beziehung.',
+  'it': 'Ciao. Molto piacere. Studio il rapporto uomo-natura.',
+  'pt': 'Olá. Muito prazer. Estudo a relação humano-natureza.',
+  'ru': 'Здравствуйте. Очень приятно. Изучаю отношения человека и природы.',
+  'ja': 'こんにちは。お会いできて嬉しいです。人間と自然の関係を研究しています。',
+  'zh': '你好。很高兴见到你。我研究人类与自然的关系。',
+  'ar': 'مرحبا. سعيد بلقائك. أدرس علاقة الإنسان بالطبيعة.',
+  'hi': 'नमस्ते। आपसे मिलकर खुशी हुई। मैं मानव-प्रकृति संबंधों का अध्ययन करता हूं।',
+};
 
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -21,50 +34,32 @@ const App: React.FC = () => {
   // Ultra-fast cursor using direct DOM manipulation with CSS transforms
   const cursorRef = useRef<HTMLDivElement>(null);
 
-  // Memoize AI instance to avoid recreating on every render
-  const ai = useMemo(() => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
-      console.warn('API_KEY not found in environment variables');
-      return null;
-    }
-    return new GoogleGenAI({ apiKey });
-  }, []);
-
   const fetchTranslation = useCallback(async (targetLanguage: string = "random") => {
-    if (!ai) {
-      console.error('AI instance not initialized');
-      setAboutText(BASE_PROMPT); // Fallback to Korean
-      return;
-    }
-
     console.log('Starting translation to:', targetLanguage);
     setIsTranslating(true);
     
+    // Small delay to show binary animation
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     try {
-      const prompt = targetLanguage === "random" 
-        ? `Translate the following Korean text into a random, interesting language from around the world (such as Spanish, French, German, Italian, Portuguese, Russian, Arabic, Hindi, Japanese, Chinese, etc). Choose ONE language randomly. Return ONLY the translated text, no explanations: "${BASE_PROMPT}"`
-        : `Translate the following Korean text to ${targetLanguage}. Return ONLY the translated text: "${BASE_PROMPT}"`;
-      
-      console.log('Sending prompt to Gemini:', prompt);
-      
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
-        contents: prompt,
-        config: {
-          temperature: 1.0
-        }
-      });
-
-      console.log('Gemini response:', response);
-
-      if (response.text) {
-        const translatedText = response.text.trim();
-        console.log('Translated text:', translatedText);
+      if (targetLanguage === "random") {
+        // Pick a random language from translations
+        const languages = Object.keys(TRANSLATIONS);
+        const randomLang = languages[Math.floor(Math.random() * languages.length)];
+        const translatedText = TRANSLATIONS[randomLang];
+        console.log('Random language selected:', randomLang, translatedText);
         setAboutText(translatedText);
       } else {
-        console.warn('No text in response');
-        setAboutText(BASE_PROMPT);
+        // Try to use system language
+        const langCode = targetLanguage.split('-')[0]; // 'ko-KR' -> 'ko'
+        if (langCode === 'ko' || langCode === 'kr') {
+          setAboutText(BASE_PROMPT);
+        } else if (TRANSLATIONS[langCode]) {
+          setAboutText(TRANSLATIONS[langCode]);
+        } else {
+          // Default to Korean if language not found
+          setAboutText(BASE_PROMPT);
+        }
       }
     } catch (error) {
       console.error("Translation error:", error);
@@ -73,7 +68,7 @@ const App: React.FC = () => {
       setIsTranslating(false);
       console.log('Translation finished');
     }
-  }, [ai]);
+  }, []);
 
   const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
     if (view === 'ABOUT') {
