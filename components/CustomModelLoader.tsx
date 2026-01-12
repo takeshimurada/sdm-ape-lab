@@ -17,21 +17,21 @@ const MODEL_CONFIG = {
   COLOR_MULTIPLIER: 1.0,
 } as const;
 
-// Constants for animation
+// Constants for animation - Spline style organic liquid
 const ANIMATION_CONFIG = {
   MOUSE_SENSITIVITY: 10,
   LERP_SPEED: 0.18,
-  DRIP_SPEED: 0.15, // 더 느린 흐름
-  DRIP_COUNT: 16, // 더 많은 세그먼트로 부드러운 흐름
-  DRIP_SEGMENT_SIZE: 0.035, // 약간 더 큰 구체
-  DRIP_LENGTH: 0.8, // 더 긴 흐름
-  DRIP_SURFACE_STICK: 0.08,
-  OPACITY_ACTIVE: 0.92,
-  EMISSIVE_INTENSITY_ACTIVE: 18,
-  NOSE_LIGHT_INTENSITY: 6, // Glow intensity for left nostril
-  NOSE_LIGHT_HOVER_INTENSITY: 6, // Same intensity for right nostril
-  NOSTRIL_LIGHT_DISTANCE: 0.5, // Light distance from nostril
-  NOSTRIL_LIGHT_DECAY: 1.5 // Light decay rate
+  DRIP_SPEED: 0.12, // 매우 느린 점성 액체
+  DRIP_COUNT: 20, // 더 많은 세그먼트로 연속적인 흐름
+  DRIP_SEGMENT_SIZE: 0.055, // 훨씬 더 큰 구체로 blob 효과
+  DRIP_LENGTH: 1.2, // 더 길게 흐름
+  DRIP_SURFACE_STICK: 0.06,
+  OPACITY_ACTIVE: 0.85,
+  EMISSIVE_INTENSITY_ACTIVE: 22,
+  NOSE_LIGHT_INTENSITY: 6,
+  NOSE_LIGHT_HOVER_INTENSITY: 6,
+  NOSTRIL_LIGHT_DISTANCE: 0.5,
+  NOSTRIL_LIGHT_DECAY: 1.5
 } as const;
 
 // Constants for geometry
@@ -48,15 +48,19 @@ const GEOMETRY_CONFIG = {
   LIGHT_DECAY: 1.5    // Less decay for better visibility
 } as const;
 
-// Constants for material
+// Constants for material - Spline style high-quality liquid
 const MATERIAL_CONFIG = {
-  COLOR: '#00ffa2',
-  EMISSIVE: '#00ff88',
+  COLOR: '#00ffaa',
+  EMISSIVE: '#00ff99',
   LIGHT_COLOR: '#00ff88',
-  IOR: 1.45,
-  THICKNESS: 0.6,
-  TRANSMISSION: 0.95,
+  IOR: 1.52, // Higher IOR for glass-like refraction
+  THICKNESS: 1.5, // Thicker for more volume
+  TRANSMISSION: 1.0, // Maximum transmission for clear liquid
   CLEARCOAT: 1.0,
+  CLEARCOAT_ROUGHNESS: 0.0, // Perfect mirror finish
+  ROUGHNESS: 0.0, // Perfectly smooth
+  METALNESS: 0.1, // Slight metallic for reflection
+  REFLECTIVITY: 1.0, // Maximum reflectivity
 } as const;
 
 /**
@@ -121,8 +125,8 @@ const LightBeam: React.FC<{ position: [number, number, number], active: boolean,
 
 /**
  * 콧구멍에서 표면을 타고 흐르는 점성 액체
- * Spline 스타일의 부드러운 blob/metaball 효과
- * 유기적으로 늘어나고 뭉쳐지는 점성 액체
+ * Spline 스타일: 유리처럼 맑고 반짝이는 고품질 액체
+ * 메타볼 효과로 blob들이 서로 합쳐지는 느낌
  */
 const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], active: boolean, delay: number }> = ({ position, active, delay }) => {
   const groupRef = useRef<THREE.Group>(null);
@@ -140,61 +144,61 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
       const material = segment.material as THREE.MeshPhysicalMaterial;
       
       if (active) {
-        // 끝없이 반복되는 흐름 애니메이션
-        const segmentDelay = i * 0.15;
-        const loopTime = (t - segmentDelay) % 4.0; // 4초 루프로 더 느리게
-        const segmentProgress = Math.max(0, Math.min(1, loopTime * 0.4));
+        // 매우 느린 점성 액체 흐름
+        const segmentDelay = i * 0.1; // 세그먼트들이 서로 가까이
+        const loopTime = (t - segmentDelay) % 5.0; // 5초 루프
+        const segmentProgress = Math.max(0, Math.min(1, loopTime * 0.35));
         
-        // Y축: 아래로 천천히 흐름 (점성 액체)
-        const flowDistance = segmentProgress * ANIMATION_CONFIG.DRIP_LENGTH * 1.2;
-        segment.position.y = position[1] - flowDistance;
+        // Y축: 중력에 따라 천천히 늘어지는 액체
+        const flowDistance = segmentProgress * ANIMATION_CONFIG.DRIP_LENGTH;
+        const gravity = segmentProgress * segmentProgress; // 가속도
+        segment.position.y = position[1] - flowDistance * (1 + gravity * 0.3);
         
-        // Z축: 표면의 곡선을 따라감 (더 부드럽게)
-        const surfaceCurve = Math.sin(flowDistance * 6.0) * ANIMATION_CONFIG.DRIP_SURFACE_STICK * 1.5;
+        // Z축: 얼굴 표면을 따라 흐름
+        const surfaceCurve = Math.sin(flowDistance * 5.0) * ANIMATION_CONFIG.DRIP_SURFACE_STICK;
         segment.position.z = position[2] + surfaceCurve;
         
-        // X축: 유기적인 흔들림
-        const wiggle = Math.sin(t * 1.5 + i * 0.8) * 0.012;
+        // X축: 부드러운 흔들림
+        const wiggle = Math.sin(t * 1.2 + i * 0.6) * 0.015;
         segment.position.x = position[0] + wiggle;
         
-        // 크기: 늘어나는 액체 효과 (blob 느낌)
-        // 시작은 작게, 중간은 크게, 끝은 다시 작게
-        const blobSize = Math.sin(segmentProgress * Math.PI) * 0.6 + 0.5;
-        const breathe = Math.sin(t * 2 + i) * 0.15;
-        const scale = (0.8 + blobSize + breathe) * 1.3;
+        // 크기: 메타볼처럼 늘어나고 뭉쳐지는 효과
+        // 세그먼트들이 겹쳐서 하나의 액체처럼 보임
+        const blobPulse = Math.sin(segmentProgress * Math.PI * 1.5);
+        const breathe = Math.sin(t * 2.5 + i * 0.8) * 0.12;
+        const baseScale = 1.0 + blobPulse * 0.5 + breathe;
         
-        // Y축 스케일을 더 크게 해서 늘어지는 느낌
-        segment.scale.set(scale * 0.9, scale * 1.4, scale * 0.9);
-        
-        // 투명도: 부드럽게 나타났다가 사라짐
-        const fadeIn = Math.min(segmentProgress * 3, 1);
-        const fadeOut = 1 - Math.pow(segmentProgress, 2);
-        const opacity = THREE.MathUtils.lerp(
-          material.opacity,
-          ANIMATION_CONFIG.OPACITY_ACTIVE * fadeIn * fadeOut * 0.95,
-          0.08
-        );
-        material.opacity = opacity;
-        
-        // 발광 효과: 더 강렬하게
-        const glowIntensity = Math.sin(t * 3 + i) * 0.3 + 0.7;
-        material.emissiveIntensity = THREE.MathUtils.lerp(
-          material.emissiveIntensity,
-          segmentProgress * ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE * fadeOut * glowIntensity * 1.2,
-          0.08
+        // Y축을 더 크게 해서 물방울이 늘어지는 효과
+        const stretchFactor = 1.0 + segmentProgress * 0.8;
+        segment.scale.set(
+          baseScale * 1.0,
+          baseScale * stretchFactor * 1.3,
+          baseScale * 1.0
         );
         
-        // 굴절률 애니메이션 (더 액체답게)
-        material.transmission = 0.98;
-        material.thickness = 0.8 + Math.sin(t * 2 + i) * 0.2;
+        // 투명도: 매우 높은 투명도로 유리 같은 효과
+        const fadeIn = Math.min(segmentProgress * 4, 1);
+        const fadeOut = 1 - Math.pow(segmentProgress, 1.5);
+        const targetOpacity = ANIMATION_CONFIG.OPACITY_ACTIVE * fadeIn * fadeOut;
+        material.opacity = THREE.MathUtils.lerp(material.opacity, targetOpacity, 0.06);
+        
+        // 발광: 강렬한 내부 발광
+        const glowPulse = Math.sin(t * 4 + i * 1.2) * 0.2 + 0.8;
+        const glowIntensity = segmentProgress * ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE * fadeOut * glowPulse;
+        material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, glowIntensity, 0.06);
+        
+        // 동적 굴절률과 두께 (더 생동감)
+        material.thickness = MATERIAL_CONFIG.THICKNESS + Math.sin(t * 3 + i) * 0.3;
+        material.ior = MATERIAL_CONFIG.IOR + Math.sin(t * 2 + i * 0.5) * 0.05;
+        
       } else {
         // 비활성화: 부드럽게 사라짐
-        material.opacity = THREE.MathUtils.lerp(material.opacity, 0, 0.12);
-        material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, 0, 0.12);
-        const targetScale = 0.2;
-        segment.scale.x = THREE.MathUtils.lerp(segment.scale.x, targetScale, 0.1);
-        segment.scale.y = THREE.MathUtils.lerp(segment.scale.y, targetScale, 0.1);
-        segment.scale.z = THREE.MathUtils.lerp(segment.scale.z, targetScale, 0.1);
+        material.opacity = THREE.MathUtils.lerp(material.opacity, 0, 0.1);
+        material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, 0, 0.1);
+        const targetScale = 0.15;
+        segment.scale.x = THREE.MathUtils.lerp(segment.scale.x, targetScale, 0.08);
+        segment.scale.y = THREE.MathUtils.lerp(segment.scale.y, targetScale, 0.08);
+        segment.scale.z = THREE.MathUtils.lerp(segment.scale.z, targetScale, 0.08);
       }
     });
   });
@@ -211,24 +215,26 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
           castShadow
           receiveShadow
         >
-          {/* 더 부드러운 구체 (세그먼트 증가) */}
-          <sphereGeometry args={[ANIMATION_CONFIG.DRIP_SEGMENT_SIZE * 1.2, 32, 32]} />
+          {/* 고해상도 구체로 완벽하게 부드러운 표면 */}
+          <sphereGeometry args={[ANIMATION_CONFIG.DRIP_SEGMENT_SIZE, 64, 64]} />
           <meshPhysicalMaterial
             color={MATERIAL_CONFIG.COLOR}
             emissive={MATERIAL_CONFIG.EMISSIVE}
             emissiveIntensity={0}
             transparent
             opacity={0}
-            roughness={0.05}
-            metalness={0.0}
-            transmission={0.98}
-            ior={1.5}
-            thickness={0.8}
-            clearcoat={1.0}
-            clearcoatRoughness={0.1}
-            reflectivity={0.9}
-            blending={THREE.AdditiveBlending}
-            side={THREE.DoubleSide}
+            roughness={MATERIAL_CONFIG.ROUGHNESS}
+            metalness={MATERIAL_CONFIG.METALNESS}
+            transmission={MATERIAL_CONFIG.TRANSMISSION}
+            ior={MATERIAL_CONFIG.IOR}
+            thickness={MATERIAL_CONFIG.THICKNESS}
+            clearcoat={MATERIAL_CONFIG.CLEARCOAT}
+            clearcoatRoughness={MATERIAL_CONFIG.CLEARCOAT_ROUGHNESS}
+            reflectivity={MATERIAL_CONFIG.REFLECTIVITY}
+            envMapIntensity={1.5}
+            blending={THREE.NormalBlending}
+            side={THREE.FrontSide}
+            depthWrite={true}
           />
         </mesh>
       ))}
