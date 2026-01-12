@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
 import ArchiveGrid from './components/ArchiveGrid';
 import AdminPage from './components/AdminPage';
+import AdminHint from './components/AdminHint';
 
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
@@ -157,7 +158,7 @@ const App: React.FC = () => {
         }}
       >
         <div className="relative flex items-center justify-center">
-          {/* Constant Ambient Pink Glow - Brighter when holding click */}
+          {/* Constant Ambient Pink Glow - Constant brightness when holding */}
           <motion.div 
             animate={{ 
               scale: isClicked ? 2.0 : 1,
@@ -167,16 +168,15 @@ const App: React.FC = () => {
             className="absolute w-20 h-20 bg-pink-500/60 rounded-full blur-[25px] z-0" 
           />
           
-          {/* Continuous bright glow while holding click */}
+          {/* Continuous constant bright glow while holding click - NO PULSE */}
           <motion.div
             animate={{
-              scale: isClicked ? [2.0, 2.3, 2.0] : 0.5,
-              opacity: isClicked ? [0.8, 1.0, 0.8] : 0
+              scale: isClicked ? 2.2 : 0.5,
+              opacity: isClicked ? 0.9 : 0
             }}
             transition={{ 
-              duration: isClicked ? 1.5 : 0.2,
-              repeat: isClicked ? Infinity : 0,
-              ease: "easeInOut"
+              duration: 0.15,
+              ease: "easeOut"
             }}
             className="absolute w-32 h-32 bg-pink-400/80 rounded-full blur-[30px] z-0"
           />
@@ -186,13 +186,16 @@ const App: React.FC = () => {
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
           
-          {/* Pulsing Light Trail - Enhanced while holding click */}
+          {/* Background Light Trail - Steady when clicked */}
           <motion.div 
              animate={{ 
-               scale: isClicked ? [1.5, 1.8, 1.5] : [1, 1.2, 1], 
-               opacity: isClicked ? [0.3, 0.5, 0.3] : [0.1, 0.2, 0.1]
+               scale: isClicked ? 1.6 : [1, 1.2, 1], 
+               opacity: isClicked ? 0.4 : [0.1, 0.2, 0.1]
              }}
-             transition={{ repeat: Infinity, duration: isClicked ? 1.5 : 2 }}
+             transition={{ 
+               repeat: isClicked ? 0 : Infinity, 
+               duration: 2 
+             }}
              className="absolute w-40 h-40 bg-pink-600/20 rounded-full blur-[50px] z-[-1]"
           />
         </div>
@@ -242,6 +245,9 @@ const App: React.FC = () => {
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-pink-600/5 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/5 blur-[120px] rounded-full"></div>
       </div>
+
+      {/* Admin Hint - Show only on HOME view */}
+      {currentView === 'HOME' && isLoaded && <AdminHint />}
     </div>
   );
 };
