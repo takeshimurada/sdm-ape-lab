@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
@@ -9,7 +9,7 @@ import ArchiveGrid from './components/ArchiveGrid';
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
 const MODEL_URL = '/face-v2.glb';
-const LOADER_DURATION = 1500;
+const LOADER_DURATION = 500; // Reduced from 1500ms to 500ms
 
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -18,9 +18,8 @@ const App: React.FC = () => {
   const [aboutText, setAboutText] = useState(BASE_PROMPT);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  // Direct cursor position without spring animation for instant response
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
+  // Ultra-fast cursor using direct DOM manipulation with CSS transforms
+  const cursorRef = useRef<HTMLDivElement>(null);
 
   // Memoize AI instance to avoid recreating on every render
   const ai = useMemo(() => {
@@ -82,14 +81,17 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Ultra-fast cursor movement using direct CSS transform (GPU accelerated)
     const handleMouseMove = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
+      if (cursorRef.current) {
+        // Use CSS transform for best performance - bypasses React rendering
+        cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+      }
     };
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
 
@@ -101,14 +103,18 @@ const App: React.FC = () => {
       window.removeEventListener('mouseup', handleMouseUp);
       clearTimeout(timer);
     };
-  }, [cursorX, cursorY]);
+  }, []);
 
   return (
     <div className="relative w-full h-screen bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
-      {/* Mouse Follow Glow */}
-      <motion.div
+      {/* Ultra-fast Mouse Follow Glow - Direct DOM manipulation */}
+      <div
+        ref={cursorRef}
         className="fixed top-0 left-0 z-[9999] pointer-events-none"
-        style={{ x: cursorX, y: cursorY, translateX: '-50%', translateY: '-50%' }}
+        style={{ 
+          transform: 'translate(-100px, -100px) translate(-50%, -50%)',
+          willChange: 'transform'
+        }}
       >
         <div className="relative flex items-center justify-center">
           {/* Constant Ambient Pink Glow */}
@@ -117,6 +123,7 @@ const App: React.FC = () => {
               scale: isClicked ? 1.5 : 1,
               opacity: isClicked ? 0.8 : 0.4
             }}
+            transition={{ duration: 0.1 }}
             className="absolute w-16 h-16 bg-pink-500/40 rounded-full blur-[20px] z-0" 
           />
           
@@ -132,7 +139,7 @@ const App: React.FC = () => {
              className="absolute w-32 h-32 bg-pink-600/10 rounded-full blur-[40px] z-[-1]"
           />
         </div>
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         {!isLoaded && (
