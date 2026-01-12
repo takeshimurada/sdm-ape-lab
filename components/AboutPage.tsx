@@ -14,23 +14,31 @@ interface AboutPageProps {
   onExit: () => void;
 }
 
+// Constants
 const CHARS = '01';
+const SCRAMBLE_SPEED = 40;
+const SCRAMBLE_INCREMENT = 0.8;
+const DOT_INTERVAL = 400;
 
 const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: () => void }> = ({ text, isDecoding, onComplete }) => {
   const [displayText, setDisplayText] = useState('');
 
+  // Memoize initial binary to prevent recalculation
+  const initialBinary = useMemo(() => {
+    return text.split('').map(c => (c === '\n' || c === ' ' ? c : CHARS[Math.floor(Math.random() * 2)])).join('');
+  }, [text]);
+
   useEffect(() => {
-    // 번역 중일 때는 텍스트를 비우고 대기
+    // Clear text while translating
     if (isDecoding) {
       setDisplayText('');
       return;
     }
 
-    // 새로운 텍스트 애니메이션 시작 시 초기화
+    // Start text animation
     let iteration = 0;
     const maxIterations = text.length;
     
-    // 이전에 남아있던 텍스트가 있다면 초기화 후 시작
     setDisplayText('');
 
     const interval = setInterval(() => {
@@ -50,15 +58,11 @@ const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: 
         if (onComplete) onComplete();
       }
 
-      iteration += 0.8; // 진행 속도 조절
-    }, 40);
+      iteration += SCRAMBLE_INCREMENT;
+    }, SCRAMBLE_SPEED);
 
     return () => clearInterval(interval);
-  }, [text, isDecoding, onComplete]); // displayText를 의존성에서 제거하여 루프 방지
-
-  const initialBinary = useMemo(() => {
-    return text.split('').map(c => (c === '\n' || c === ' ' ? c : CHARS[Math.floor(Math.random() * 2)])).join('');
-  }, [text]);
+  }, [text, isDecoding, onComplete]);
 
   return (
     <span 
@@ -82,18 +86,16 @@ const LoadingDots: React.FC = () => {
   
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots(prev => {
-        if (prev === '....') return '.';
-        return prev + '.';
-      });
-    }, 400);
+      setDots(prev => prev === '....' ? '.' : prev + '.');
+    }, DOT_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
   return <span className="text-pink-500 italic font-mono brightness-150">HMM{dots}</span>;
 };
 
-const SocialIcon3D: React.FC<{ icon: React.ReactNode; isHovered: boolean }> = ({ icon, isHovered }) => {
+// Memoized 3D icon component for better performance
+const SocialIcon3D: React.FC<{ icon: React.ReactNode; isHovered: boolean }> = React.memo(({ icon, isHovered }) => {
   return (
     <div 
       className="relative transition-all duration-500"
@@ -111,7 +113,7 @@ const SocialIcon3D: React.FC<{ icon: React.ReactNode; isHovered: boolean }> = ({
       </div>
     </div>
   );
-};
+});
 
 const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boolean }> = ({ href, icon, isMail }) => {
   const [isHovered, setIsHovered] = useState(false);

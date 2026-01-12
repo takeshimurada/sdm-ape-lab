@@ -1,35 +1,51 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useSpring, useMotionValue } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
 import ArchiveGrid from './components/ArchiveGrid';
 
+// Constants
+const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
+const MODEL_URL = './face.glb';
+const SPRING_CONFIG = { damping: 35, stiffness: 350 };
+const LOADER_DURATION = 1500;
+
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE'>('HOME');
-  const [aboutText, setAboutText] = useState('안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.');
+  const [aboutText, setAboutText] = useState(BASE_PROMPT);
   const [isTranslating, setIsTranslating] = useState(false);
-  const modelUrl = './face.glb';
 
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  const springConfig = { damping: 35, stiffness: 350 };
-  const cursorX = useSpring(mouseX, springConfig);
-  const cursorY = useSpring(mouseY, springConfig);
+  const cursorX = useSpring(mouseX, SPRING_CONFIG);
+  const cursorY = useSpring(mouseY, SPRING_CONFIG);
 
-  const basePrompt = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
+  // Memoize AI instance to avoid recreating on every render
+  const ai = useMemo(() => {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      console.warn('API_KEY not found in environment variables');
+      return null;
+    }
+    return new GoogleGenAI({ apiKey });
+  }, []);
 
   const fetchTranslation = useCallback(async (targetLanguage: string = "random") => {
+    if (!ai) {
+      console.error('AI instance not initialized');
+      return;
+    }
+
     setIsTranslating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = targetLanguage === "random" 
-        ? `Translate this text into a random, unique language from around the world. Use a different language than before if possible. Return ONLY the translated string: "${basePrompt}"`
-        : `Translate this text into the language code "${targetLanguage}": "${basePrompt}". Return ONLY the translation.`;
+        ? `Translate this text into a random, unique language from around the world. Use a different language than before if possible. Return ONLY the translated string: "${BASE_PROMPT}"`
+        : `Translate this text into the language code "${targetLanguage}": "${BASE_PROMPT}". Return ONLY the translation.`;
       
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -45,28 +61,28 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error("Translation error:", error);
-      setAboutText(basePrompt);
+      setAboutText(BASE_PROMPT);
     } finally {
       setIsTranslating(false);
     }
-  }, []);
+  }, [ai]);
 
-  const handleSetView = (view: 'ABOUT' | 'ARCHIVE') => {
+  const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
     if (view === 'ABOUT' && currentView !== 'ABOUT') {
-      setAboutText(basePrompt);
+      setAboutText(BASE_PROMPT);
       fetchTranslation(); 
     }
     setCurrentView(view);
-  };
+  }, [currentView, fetchTranslation]);
 
-  const handleSystemTranslate = () => {
+  const handleSystemTranslate = useCallback(() => {
     const userLang = navigator.language || 'en';
     fetchTranslation(userLang);
-  };
+  }, [fetchTranslation]);
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     setCurrentView('HOME');
-  };
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -80,7 +96,7 @@ const App: React.FC = () => {
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
 
-    const timer = setTimeout(() => setIsLoaded(true), 1500);
+    const timer = setTimeout(() => setIsLoaded(true), LOADER_DURATION);
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
@@ -88,7 +104,7 @@ const App: React.FC = () => {
       window.removeEventListener('mouseup', handleMouseUp);
       clearTimeout(timer);
     };
-  }, [mouseX, mouseY]);
+  }, []); // mouseX, mouseY are stable MotionValues and don't need to be in deps
 
   return (
     <div className="relative w-full h-screen bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
@@ -146,7 +162,7 @@ const App: React.FC = () => {
           ) : (
             <AboutPage 
               key="about-view" 
-              modelUrl={modelUrl} 
+              modelUrl={MODEL_URL} 
               showDetails={currentView === 'ABOUT'} 
               text={aboutText} 
               isTranslating={isTranslating}
