@@ -257,132 +257,19 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         console.log('????? button clicked!');
                         onTranslateSystem(); 
                       }}
-                      className="cursor-none pointer-events-auto relative"
+                      className="cursor-none pointer-events-auto"
                       style={{ 
                         display: 'inline-block',
+                        fontSize: '48px',
+                        fontWeight: 900,
+                        letterSpacing: '-0.05em',
+                        color: isHoveringBtn ? '#2a2a2a' : '#1a1a1a',
+                        transform: isHoveringBtn ? 'translateY(-2px)' : 'translateY(0)',
+                        transition: 'all 0.2s ease',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                       }}
                     >
-                      {/* Main text with asphalt texture */}
-                      <div
-                        style={{
-                          fontSize: '48px',
-                          fontWeight: 900,
-                          textTransform: 'uppercase',
-                          letterSpacing: '-0.05em',
-                          position: 'relative',
-                          transform: isHoveringBtn ? 'translateY(-4px) scale(1.05)' : 'translateY(0) scale(1)',
-                          transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                        }}
-                      >
-                        {/* Base gradient text */}
-                        <span
-                          style={{
-                            background: isHoveringBtn 
-                              ? 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%)'
-                              : 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                            display: 'inline-block',
-                            position: 'relative',
-                            textShadow: isHoveringBtn 
-                              ? '0 3px 6px rgba(0,0,0,0.9), 0 6px 12px rgba(0,0,0,0.7)'
-                              : '0 2px 4px rgba(0,0,0,0.95), 0 4px 8px rgba(0,0,0,0.8)',
-                            filter: isHoveringBtn ? 'contrast(1.3) brightness(1.1)' : 'contrast(1.2) brightness(0.9)',
-                            transition: 'all 0.3s ease',
-                          }}
-                        >
-                          ?????
-                        </span>
-
-                        {/* Asphalt texture overlay - more visible on hover */}
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='5' numOctaves='6' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.8'/%3E%3C/svg%3E")`,
-                            backgroundSize: '200px 200px',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                            mixBlendMode: 'overlay',
-                            opacity: isHoveringBtn ? 0.7 : 0.3,
-                            transition: 'opacity 0.3s ease',
-                            pointerEvents: 'none',
-                          }}
-                        >
-                          ?????
-                        </span>
-
-                        {/* Shine effect on hover */}
-                        {isHoveringBtn && (
-                          <motion.span
-                            initial={{ x: '-100%' }}
-                            animate={{ x: '200%' }}
-                            transition={{ 
-                              duration: 0.8, 
-                              ease: 'easeInOut',
-                              repeat: Infinity,
-                              repeatDelay: 1.5,
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)',
-                              pointerEvents: 'none',
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                              backgroundClip: 'text',
-                            }}
-                          >
-                            ?????
-                          </motion.span>
-                        )}
-
-                        {/* Rough edge highlight on hover */}
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            WebkitTextStroke: isHoveringBtn ? '0.8px rgba(255,255,255,0.15)' : '0.5px rgba(255,255,255,0.05)',
-                            WebkitTextFillColor: 'transparent',
-                            transition: 'all 0.3s ease',
-                            pointerEvents: 'none',
-                          }}
-                        >
-                          ?????
-                        </span>
-                      </div>
-
-                      {/* Subtle glow on hover */}
-                      {isHoveringBtn && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '120%',
-                            height: '120%',
-                            background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
-                            pointerEvents: 'none',
-                            filter: 'blur(20px)',
-                            zIndex: -1,
-                          }}
-                        />
-                      )}
+                      ?????
                     </motion.div>
                   )}
                 </AnimatePresence>
