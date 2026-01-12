@@ -309,10 +309,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="absolute bottom-4 left-10 pointer-events-none opacity-[0.02]">
-        <h1 className="text-[25vw] font-black italic tracking-tighter uppercase leading-none text-white">LAB</h1>
-      </div>
     </motion.div>
   );
 };

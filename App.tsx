@@ -9,7 +9,7 @@ import ArchiveGrid from './components/ArchiveGrid';
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
 const MODEL_URL = '/face-v2.glb';
-const SPRING_CONFIG = { damping: 50, stiffness: 1000, mass: 0.1 };
+const SPRING_CONFIG = { damping: 20, stiffness: 1500, mass: 0.05 };
 const LOADER_DURATION = 1500;
 
 const App: React.FC = () => {
