@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
 import ArchiveGrid from './components/ArchiveGrid';
+import AdminPage from './components/AdminPage';
 
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
@@ -27,7 +28,7 @@ const TRANSLATIONS: Record<string, string> = {
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
-  const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE'>('HOME');
+  const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN'>('HOME');
   const [aboutText, setAboutText] = useState('01010101 01010101 01010101'); // Start with binary placeholder
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -110,9 +111,18 @@ const App: React.FC = () => {
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
 
+    // 🔐 Admin access: Ctrl+Shift+A
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        setCurrentView('ADMIN');
+      }
+    };
+
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('keydown', handleKeyDown);
     
     rafId = requestAnimationFrame(updateCursor);
 
@@ -122,6 +132,7 @@ const App: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('keydown', handleKeyDown);
       cancelAnimationFrame(rafId);
       clearTimeout(timer);
     };
@@ -181,7 +192,11 @@ const App: React.FC = () => {
 
       <main className="relative w-full h-full">
         <AnimatePresence mode="wait">
-          {currentView === 'ARCHIVE' ? (
+          {currentView === 'ADMIN' ? (
+            <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <AdminPage onExit={handleGoHome} />
+            </motion.div>
+          ) : currentView === 'ARCHIVE' ? (
             <motion.div key="archive" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 z-10">
               <ArchiveGrid />
             </motion.div>
