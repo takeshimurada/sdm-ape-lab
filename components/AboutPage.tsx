@@ -246,29 +246,30 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
               <div className="relative mt-2 flex justify-center h-16">
                 <AnimatePresence>
                   {isTextFinished && !isTranslating && (
-                    <button
-                      onMouseEnter={() => setIsHoveringBtn(true)}
-                      onMouseLeave={() => setIsHoveringBtn(false)}
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        console.log('????? button clicked!');
-                        onTranslateSystem(); 
-                      }}
-                      className="cursor-none"
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       style={{ 
-                        all: 'unset',
-                        cursor: 'none',
-                        display: 'inline-block',
-                        pointerEvents: 'auto',
+                        transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
+                        transition: 'transform 0.3s ease',
                       }}
                     >
-                      <motion.span
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="relative text-[48px] font-black tracking-[-0.05em] uppercase transition-all active:scale-95 block"
+                      <div
+                        onMouseEnter={() => setIsHoveringBtn(true)}
+                        onMouseLeave={() => setIsHoveringBtn(false)}
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          console.log('????? button clicked!');
+                          onTranslateSystem(); 
+                        }}
+                        className="cursor-none pointer-events-auto"
                         style={{ 
-                          transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
+                          display: 'inline-block',
+                          fontSize: '48px',
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          letterSpacing: '-0.05em',
                         }}
                       >
                       <span 
@@ -316,8 +317,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         />
                         ?????
                       </span>
-                    </motion.span>
-                    </button>
+                      </div>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
