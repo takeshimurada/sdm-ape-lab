@@ -18,9 +18,21 @@ const ANIMATION_CONFIG = {
   GLITCH_DURATION: 0.15,
 } as const;
 
-// Raw/Brutalist Archive Card
+// Raw/Brutalist Archive Card with variable sizes
 const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo(({ item, index }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  // 불규칙한 크기 패턴 (but 규칙적)
+  const sizeVariants = [
+    'col-span-1 row-span-1', // 작은 정사각형
+    'col-span-2 row-span-1', // 가로 직사각형
+    'col-span-1 row-span-2', // 세로 직사각형
+    'col-span-2 row-span-2', // 큰 정사각형
+    'col-span-1 row-span-1', // 작은 정사각형
+    'col-span-1 row-span-2', // 세로 직사각형
+  ];
+
+  const sizeClass = sizeVariants[index % sizeVariants.length];
 
   return (
     <motion.article
@@ -32,10 +44,7 @@ const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo((
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-none border-2 border-white/10"
-      style={{
-        aspectRatio: '1/1',
-      }}
+      className={`group relative cursor-none border-2 border-white/10 ${sizeClass}`}
     >
       {/* Media Container - Full bleed */}
       <div className="absolute inset-0 overflow-hidden bg-black">
@@ -211,8 +220,8 @@ const ArchiveGrid: React.FC = () => {
           </div>
         </motion.header>
 
-        {/* Grid - Dense & Raw */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0">
+        {/* Grid - Dense & Raw with irregular sizes */}
+        <div className="grid grid-cols-4 gap-0 auto-rows-[200px]">
           {items.map((item, idx) => (
             <ArchiveCard key={item.id} item={item} index={idx} />
           ))}
