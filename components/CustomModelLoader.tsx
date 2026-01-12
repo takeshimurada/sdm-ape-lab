@@ -28,7 +28,8 @@ const ANIMATION_CONFIG = {
   DRIP_SURFACE_STICK: 0.08,
   OPACITY_ACTIVE: 0.92,
   EMISSIVE_INTENSITY_ACTIVE: 18,
-  NOSE_LIGHT_INTENSITY: 5,
+  NOSE_LIGHT_INTENSITY: 3, // Reduced for subtle glow
+  NOSE_LIGHT_HOVER_INTENSITY: 8, // Increased when pressing
 } as const;
 
 // Constants for geometry
@@ -156,6 +157,7 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
   const { mouse, viewport } = useThree();
   const [scale, setScale] = useState(1);
   const [hoveringNose, setHoveringNose] = useState(false);
+  const [pressingNose, setPressingNose] = useState(false);
 
   // Load model with GLTFLoader directly
   useEffect(() => {
@@ -233,7 +235,10 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
     groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
 
     if (noseLight.current) {
-      const targetInt = hoveringNose ? ANIMATION_CONFIG.NOSE_LIGHT_INTENSITY : 0;
+      // Subtle glow when hovering, brighter when pressing
+      const targetInt = pressingNose 
+        ? ANIMATION_CONFIG.NOSE_LIGHT_HOVER_INTENSITY 
+        : (hoveringNose ? ANIMATION_CONFIG.NOSE_LIGHT_INTENSITY : 0);
       noseLight.current.intensity = THREE.MathUtils.lerp(noseLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
     }
   });
@@ -258,14 +263,19 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
         <mesh 
           position={GEOMETRY_CONFIG.NOSE_POSITION}
           onPointerOver={() => setHoveringNose(true)} 
-          onPointerOut={() => setHoveringNose(false)} 
+          onPointerOut={() => {
+            setHoveringNose(false);
+            setPressingNose(false); // Release when leaving
+          }}
+          onPointerDown={() => setPressingNose(true)}
+          onPointerUp={() => setPressingNose(false)}
           visible={false}
         >
           <boxGeometry args={GEOMETRY_CONFIG.NOSE_HITBOX_SIZE} />
         </mesh>
 
-        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={hoveringNose} delay={0} />
-        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={hoveringNose} delay={1.1} />
+        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} delay={0} />
+        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} delay={1.1} />
 
         <pointLight 
           ref={noseLight} 
