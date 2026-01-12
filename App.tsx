@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence, useSpring, useMotionValue } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
@@ -9,7 +9,6 @@ import ArchiveGrid from './components/ArchiveGrid';
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
 const MODEL_URL = '/face-v2.glb';
-const SPRING_CONFIG = { damping: 20, stiffness: 1500, mass: 0.05 };
 const LOADER_DURATION = 1500;
 
 const App: React.FC = () => {
@@ -19,11 +18,9 @@ const App: React.FC = () => {
   const [aboutText, setAboutText] = useState(BASE_PROMPT);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const mouseX = useMotionValue(-100);
-  const mouseY = useMotionValue(-100);
-
-  const cursorX = useSpring(mouseX, SPRING_CONFIG);
-  const cursorY = useSpring(mouseY, SPRING_CONFIG);
+  // Direct cursor position without spring animation for instant response
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
 
   // Memoize AI instance to avoid recreating on every render
   const ai = useMemo(() => {
@@ -86,8 +83,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
     };
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
@@ -104,7 +101,7 @@ const App: React.FC = () => {
       window.removeEventListener('mouseup', handleMouseUp);
       clearTimeout(timer);
     };
-  }, []); // mouseX, mouseY are stable MotionValues and don't need to be in deps
+  }, [cursorX, cursorY]);
 
   return (
     <div className="relative w-full h-screen bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
