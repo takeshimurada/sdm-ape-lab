@@ -248,8 +248,27 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                   {isTextFinished && !isTranslating && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      animate={{ 
+                        opacity: 1, 
+                        y: 0,
+                        // 자연스러운 떠다니는 움직임
+                        y: isHoveringBtn ? [-2, -4, -2] : 0,
+                        rotate: isHoveringBtn ? [-0.5, 0.5, -0.5] : 0,
+                      }}
                       exit={{ opacity: 0 }}
+                      transition={{
+                        opacity: { duration: 0.3 },
+                        y: isHoveringBtn ? {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        } : { duration: 0.2 },
+                        rotate: isHoveringBtn ? {
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        } : { duration: 0.2 },
+                      }}
                       onMouseEnter={() => setIsHoveringBtn(true)}
                       onMouseLeave={() => setIsHoveringBtn(false)}
                       onClick={(e) => { 
@@ -264,8 +283,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         fontWeight: 900,
                         letterSpacing: '-0.05em',
                         color: isHoveringBtn ? '#2a2a2a' : '#1a1a1a',
-                        transform: isHoveringBtn ? 'translateY(-2px)' : 'translateY(0)',
-                        transition: 'all 0.2s ease',
                         textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                       }}
                     >
