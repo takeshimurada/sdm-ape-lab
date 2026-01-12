@@ -19,54 +19,55 @@ const ANIMATION_CONFIG = {
   CARD_EASE: [0.22, 1, 0.36, 1], // Custom easing
 } as const;
 
-// 실제 프로젝트 데이터로 교체 가능
+// 🎨 실제 프로젝트 데이터 (SDM APE LAB)
+// 여기에 실제 프로젝트 이미지/비디오 URL과 정보를 입력하세요
 const ARCHIVE_ITEMS: ArchiveItem[] = [
   { 
     id: 1, 
     type: 'image', 
-    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1600', 
-    title: 'Synthetic Structures',
-    tags: ['Research', 'Form', 'Visual Identity'],
+    url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?auto=format&fit=crop&q=80&w=1600', 
+    title: '서대문 유인원 형태학 연구 01',
+    tags: ['형태학', '관찰', '시각연구'],
     year: '2025'
   },
   { 
     id: 2, 
-    type: 'video', 
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-342-large.mp4', 
-    title: 'Neural Pathways',
-    tags: ['Motion', 'Digital', 'Experimental'],
+    type: 'image', 
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1600', 
+    title: '인간-자연 상호작용 실험',
+    tags: ['실험', '인터랙션', '디지털'],
     year: '2025'
   },
   { 
     id: 3, 
     type: 'image', 
     url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1600', 
-    title: 'Observation Studies',
-    tags: ['Photography', 'Analysis'],
+    title: '시선 추적 프로토타입',
+    tags: ['관찰', '기술', 'AI'],
     year: '2024'
   },
   { 
     id: 4, 
-    type: 'image', 
-    url: 'https://images.unsplash.com/photo-1579546671585-6188a61ce002?auto=format&fit=crop&q=80&w=1600', 
-    title: 'Color Theory',
-    tags: ['Research', 'Visual'],
+    type: 'video', 
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-342-large.mp4', 
+    title: '신경망 시각화 프로젝트',
+    tags: ['모션', '3D', '디지털아트'],
     year: '2024'
   },
   { 
     id: 5, 
-    type: 'video', 
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-futuristic-abstract-shapes-rotating-97-large.mp4', 
-    title: 'Morphological Study',
-    tags: ['3D', 'Animation', 'Experimental'],
+    type: 'image', 
+    url: 'https://images.unsplash.com/photo-1579546671585-6188a61ce002?auto=format&fit=crop&q=80&w=1600', 
+    title: '색채 심리학 연구',
+    tags: ['색채', '심리학', '시각'],
     year: '2024'
   },
   { 
     id: 6, 
-    type: 'image', 
-    url: 'https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=1600', 
-    title: 'Internal Systems',
-    tags: ['Anatomy', 'Research'],
+    type: 'video', 
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-futuristic-abstract-shapes-rotating-97-large.mp4', 
+    title: '유인원 행동 패턴 분석',
+    tags: ['행동', '분석', '실험'],
     year: '2024'
   },
 ];
