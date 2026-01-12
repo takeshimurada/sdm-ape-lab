@@ -250,74 +250,31 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
+                      onMouseEnter={() => setIsHoveringBtn(true)}
+                      onMouseLeave={() => setIsHoveringBtn(false)}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        console.log('????? button clicked!');
+                        onTranslateSystem(); 
+                      }}
+                      className="cursor-none pointer-events-auto"
                       style={{ 
+                        display: 'inline-block',
+                        fontSize: '48px',
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '-0.05em',
+                        color: isHoveringBtn ? '#2a2a2a' : '#1a1a1a',
                         transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
-                        transition: 'transform 0.3s ease',
+                        transition: 'all 0.3s ease',
+                        textShadow: isHoveringBtn 
+                          ? '0 2px 4px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,255,255,0.15)'
+                          : '0 2px 4px rgba(0,0,0,0.95), 0 4px 8px rgba(0,0,0,0.8)',
+                        WebkitTextStroke: '0.5px rgba(255,255,255,0.05)',
+                        filter: 'contrast(1.2) brightness(0.9)',
                       }}
                     >
-                      <div
-                        onMouseEnter={() => setIsHoveringBtn(true)}
-                        onMouseLeave={() => setIsHoveringBtn(false)}
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          console.log('????? button clicked!');
-                          onTranslateSystem(); 
-                        }}
-                        className="cursor-none pointer-events-auto"
-                        style={{ 
-                          display: 'inline-block',
-                          fontSize: '48px',
-                          fontWeight: 900,
-                          textTransform: 'uppercase',
-                          letterSpacing: '-0.05em',
-                        }}
-                      >
-                      <span 
-                        className="relative inline-block"
-                        style={{
-                          background: isHoveringBtn 
-                            ? 'linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 50%, #2a2a2a 100%)'
-                            : 'linear-gradient(135deg, #1a1a1a 0%, #050505 50%, #1a1a1a 100%)',
-                          backgroundClip: 'text',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          filter: isHoveringBtn 
-                            ? `
-                              drop-shadow(0 2px 4px rgba(0,0,0,0.9))
-                              drop-shadow(0 4px 8px rgba(0,0,0,0.7))
-                              drop-shadow(0 0 20px rgba(255,255,255,0.15))
-                            `
-                            : `
-                              drop-shadow(0 2px 4px rgba(0,0,0,0.95))
-                              drop-shadow(0 4px 8px rgba(0,0,0,0.8))
-                            `,
-                        }}
-                      >
-                        {/* Asphalt texture overlay on text */}
-                        <span 
-                          className="absolute inset-0 opacity-30 mix-blend-overlay pointer-events-none"
-                          style={{
-                            background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                            backgroundSize: '80px 80px',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                          }}
-                        />
-                        {/* Reflective shine on text */}
-                        <span 
-                          className="absolute inset-0 pointer-events-none"
-                          style={{
-                            background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            opacity: 0.3,
-                            animation: isHoveringBtn ? 'shine 1.5s infinite' : 'none',
-                          }}
-                        />
-                        ?????
-                      </span>
-                      </div>
+                      ?????
                     </motion.div>
                   )}
                 </AnimatePresence>
