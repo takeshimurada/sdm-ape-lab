@@ -14,6 +14,16 @@ export default defineConfig(({ mode }) => {
           '127.0.0.1'
         ],
       },
+      build: {
+        rollupOptions: {
+          output: {
+            // Force new filename on every build to bypass cache
+            entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+            chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+            assetFileNames: `assets/[name]-[hash].[ext]`
+          }
+        }
+      },
       plugins: [react()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
