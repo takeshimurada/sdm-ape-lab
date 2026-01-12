@@ -9,13 +9,13 @@ import ArchiveGrid from './components/ArchiveGrid';
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
 const MODEL_URL = '/face-v2.glb';
-const LOADER_DURATION = 500; // Reduced from 1500ms to 500ms
+const LOADER_DURATION = 500;
 
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE'>('HOME');
-  const [aboutText, setAboutText] = useState(BASE_PROMPT);
+  const [aboutText, setAboutText] = useState('01010101 01010101 01010101'); // Start with binary placeholder
   const [isTranslating, setIsTranslating] = useState(false);
 
   // Ultra-fast cursor using direct DOM manipulation with CSS transforms
