@@ -253,10 +253,14 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="relative px-8 py-3 text-[48px] font-black tracking-[-0.05em] uppercase transition-all pointer-events-auto cursor-none active:scale-95 z-10"
+                      className="relative text-[48px] font-black tracking-[-0.05em] uppercase transition-all pointer-events-auto cursor-none active:scale-95 z-10"
                       style={{ 
-                        background: 'transparent',
+                        background: 'none',
                         border: 'none',
+                        padding: 0,
+                        margin: 0,
+                        outline: 'none',
+                        boxShadow: 'none',
                         transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
                       }}
                     >
