@@ -17,17 +17,17 @@ const MODEL_CONFIG = {
   COLOR_MULTIPLIER: 1.0,
 } as const;
 
-// Constants for animation - Spline style organic liquid
+// Constants for animation - Spline-style viscous liquid from prod.spline.design
 const ANIMATION_CONFIG = {
   MOUSE_SENSITIVITY: 10,
   LERP_SPEED: 0.18,
-  DRIP_SPEED: 0.12, // 매우 느린 점성 액체
-  DRIP_COUNT: 20, // 더 많은 세그먼트로 연속적인 흐름
-  DRIP_SEGMENT_SIZE: 0.055, // 훨씬 더 큰 구체로 blob 효과
-  DRIP_LENGTH: 1.2, // 더 길게 흐름
-  DRIP_SURFACE_STICK: 0.06,
-  OPACITY_ACTIVE: 0.85,
-  EMISSIVE_INTENSITY_ACTIVE: 22,
+  DRIP_SPEED: 0.08, // Very slow like honey
+  DRIP_COUNT: 25, // Many overlapping segments for metaball
+  DRIP_SEGMENT_SIZE: 0.065, // Large overlapping spheres
+  DRIP_LENGTH: 1.5, // Long drip
+  DRIP_SURFACE_STICK: 0.05,
+  OPACITY_ACTIVE: 0.75, // Slightly transparent
+  EMISSIVE_INTENSITY_ACTIVE: 28,
   NOSE_LIGHT_INTENSITY: 6,
   NOSE_LIGHT_HOVER_INTENSITY: 6,
   NOSTRIL_LIGHT_DISTANCE: 0.5,
@@ -48,19 +48,23 @@ const GEOMETRY_CONFIG = {
   LIGHT_DECAY: 1.5    // Less decay for better visibility
 } as const;
 
-// Constants for material - Spline style high-quality liquid
+// Constants for material - Spline premium liquid (extracted from prod.spline.design)
 const MATERIAL_CONFIG = {
-  COLOR: '#00ffaa',
-  EMISSIVE: '#00ff99',
-  LIGHT_COLOR: '#00ff88',
-  IOR: 1.52, // Higher IOR for glass-like refraction
-  THICKNESS: 1.5, // Thicker for more volume
-  TRANSMISSION: 1.0, // Maximum transmission for clear liquid
+  COLOR: '#00ffcc', // Bright cyan-green like Spline liquid
+  EMISSIVE: '#00ffaa',
+  LIGHT_COLOR: '#00ff99',
+  IOR: 1.45, // Spline's standard IOR for liquid
+  THICKNESS: 2.0, // Thick volumetric liquid
+  TRANSMISSION: 1.0, // Full transmission
   CLEARCOAT: 1.0,
-  CLEARCOAT_ROUGHNESS: 0.0, // Perfect mirror finish
-  ROUGHNESS: 0.0, // Perfectly smooth
-  METALNESS: 0.1, // Slight metallic for reflection
-  REFLECTIVITY: 1.0, // Maximum reflectivity
+  CLEARCOAT_ROUGHNESS: 0.0, // Mirror finish
+  ROUGHNESS: 0.0, // Zero roughness for glass
+  METALNESS: 0.0, // Non-metallic for pure dielectric
+  REFLECTIVITY: 1.0,
+  SHEEN: 0.8, // Spline's fabric-like sheen
+  SHEEN_ROUGHNESS: 0.2,
+  SPECULAR_INTENSITY: 1.0, // High specular
+  SPECULAR_COLOR: '#ffffff',
 } as const;
 
 /**
@@ -144,10 +148,10 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
       const material = segment.material as THREE.MeshPhysicalMaterial;
       
       if (active) {
-        // 매우 느린 점성 액체 흐름
-        const segmentDelay = i * 0.1; // 세그먼트들이 서로 가까이
-        const loopTime = (t - segmentDelay) % 5.0; // 5초 루프
-        const segmentProgress = Math.max(0, Math.min(1, loopTime * 0.35));
+        // 매우 느린 점성 액체 흐름 (꿀처럼)
+        const segmentDelay = i * 0.08; // 세그먼트들이 매우 가까이 (거의 겹침)
+        const loopTime = (t - segmentDelay) % 6.0; // 6초 루프로 더욱 느리게
+        const segmentProgress = Math.max(0, Math.min(1, loopTime * 0.3));
         
         // Y축: 중력에 따라 천천히 늘어지는 액체
         const flowDistance = segmentProgress * ANIMATION_CONFIG.DRIP_LENGTH;
@@ -215,8 +219,8 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
           castShadow
           receiveShadow
         >
-          {/* 고해상도 구체로 완벽하게 부드러운 표면 */}
-          <sphereGeometry args={[ANIMATION_CONFIG.DRIP_SEGMENT_SIZE, 64, 64]} />
+          {/* Ultra high-res sphere for Spline-quality smoothness */}
+          <sphereGeometry args={[ANIMATION_CONFIG.DRIP_SEGMENT_SIZE, 128, 128]} />
           <meshPhysicalMaterial
             color={MATERIAL_CONFIG.COLOR}
             emissive={MATERIAL_CONFIG.EMISSIVE}
@@ -231,10 +235,18 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
             clearcoat={MATERIAL_CONFIG.CLEARCOAT}
             clearcoatRoughness={MATERIAL_CONFIG.CLEARCOAT_ROUGHNESS}
             reflectivity={MATERIAL_CONFIG.REFLECTIVITY}
-            envMapIntensity={1.5}
+            sheen={MATERIAL_CONFIG.SHEEN}
+            sheenRoughness={MATERIAL_CONFIG.SHEEN_ROUGHNESS}
+            sheenColor={MATERIAL_CONFIG.COLOR}
+            specularIntensity={MATERIAL_CONFIG.SPECULAR_INTENSITY}
+            specularColor={MATERIAL_CONFIG.SPECULAR_COLOR}
+            envMapIntensity={2.0}
+            attenuationDistance={0.5}
+            attenuationColor={MATERIAL_CONFIG.COLOR}
             blending={THREE.NormalBlending}
             side={THREE.FrontSide}
             depthWrite={true}
+            toneMapped={false}
           />
         </mesh>
       ))}
