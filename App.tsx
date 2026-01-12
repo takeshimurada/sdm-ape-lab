@@ -34,42 +34,56 @@ const App: React.FC = () => {
   const fetchTranslation = useCallback(async (targetLanguage: string = "random") => {
     if (!ai) {
       console.error('AI instance not initialized');
+      setAboutText(BASE_PROMPT); // Fallback to Korean
       return;
     }
 
+    console.log('Starting translation to:', targetLanguage);
     setIsTranslating(true);
+    
     try {
       const prompt = targetLanguage === "random" 
-        ? `Translate this text into a random, unique language from around the world. Use a different language than before if possible. Return ONLY the translated string: "${BASE_PROMPT}"`
-        : `Translate this text into the language code "${targetLanguage}": "${BASE_PROMPT}". Return ONLY the translation.`;
+        ? `Translate the following Korean text into a random, interesting language from around the world (such as Spanish, French, German, Italian, Portuguese, Russian, Arabic, Hindi, Japanese, Chinese, etc). Choose ONE language randomly. Return ONLY the translated text, no explanations: "${BASE_PROMPT}"`
+        : `Translate the following Korean text to ${targetLanguage}. Return ONLY the translated text: "${BASE_PROMPT}"`;
+      
+      console.log('Sending prompt to Gemini:', prompt);
       
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.0-flash-exp',
         contents: prompt,
         config: {
-          thinkingConfig: { thinkingBudget: 0 },
-          temperature: 0.9
+          temperature: 1.0
         }
       });
 
+      console.log('Gemini response:', response);
+
       if (response.text) {
-        setAboutText(response.text.trim());
+        const translatedText = response.text.trim();
+        console.log('Translated text:', translatedText);
+        setAboutText(translatedText);
+      } else {
+        console.warn('No text in response');
+        setAboutText(BASE_PROMPT);
       }
     } catch (error) {
       console.error("Translation error:", error);
       setAboutText(BASE_PROMPT);
     } finally {
       setIsTranslating(false);
+      console.log('Translation finished');
     }
   }, [ai]);
 
   const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
-    setCurrentView(view);
-    if (view === 'ABOUT' && currentView !== 'ABOUT') {
-      // Start with random foreign language immediately
+    if (view === 'ABOUT') {
+      // Always translate when opening About page
+      console.log('About tab clicked - starting translation');
+      setAboutText('01010101 01010101 01010101'); // Reset to binary
       fetchTranslation("random");
     }
-  }, [currentView, fetchTranslation]);
+    setCurrentView(view);
+  }, [fetchTranslation]);
 
   const handleSystemTranslate = useCallback(() => {
     const userLang = navigator.language || 'en';
