@@ -65,8 +65,9 @@ const App: React.FC = () => {
 
   const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
     if (view === 'ABOUT' && currentView !== 'ABOUT') {
+      // Start with base text, then immediately translate to random language
       setAboutText(BASE_PROMPT);
-      fetchTranslation(); 
+      fetchTranslation("random"); // Explicitly pass "random" for clarity
     }
     setCurrentView(view);
   }, [currentView, fetchTranslation]);

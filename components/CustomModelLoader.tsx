@@ -41,7 +41,7 @@ const GEOMETRY_CONFIG = {
   NOSE_POSITION: [0, -0.25, 0.9] as [number, number, number],
   NOSE_HITBOX_SIZE: [0.55, 0.35, 0.4] as [number, number, number],
   LIGHT_POSITION: [0, -0.4, 1.0] as [number, number, number],
-  LIGHT_DISTANCE: 0.8,
+  LIGHT_DISTANCE: 0.4, // Reduced from 0.8 for smaller radius
   LIGHT_DECAY: 2.5,
 } as const;
 
