@@ -1,5 +1,5 @@
 
-import React, { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useCallback, Component, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
@@ -12,6 +12,26 @@ interface AboutPageProps {
   isTranslating: boolean;
   onTranslateSystem: () => void;
   onExit: () => void;
+}
+
+// Error Boundary for WebGL failures
+class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.log('3D rendering error (using fallback):', error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
 }
 
 // Constants
@@ -157,20 +177,23 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
       onClick={onExit}
       className="relative w-full h-full flex items-center justify-center bg-[#010101] cursor-none"
     >
+      {/* 3D Background - Only render if WebGL is supported */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
-          <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />
-          <ambientLight intensity={0.12} />
-          <pointLight position={[-10, -10, -10]} color="#ff007f" intensity={0.5} />
-          <directionalLight position={[0, 5, -5]} intensity={0.85} color="#ff007f" />
-          <Suspense fallback={null}>
-            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-              <CustomModelLoader url={modelUrl} />
-            </Float>
-            <Environment preset="city" environmentIntensity={0.35} />
-            <ContactShadows opacity={0.4} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
-          </Suspense>
-        </Canvas>
+        <ErrorBoundary fallback={<div className="w-full h-full bg-gradient-to-br from-pink-900/20 to-purple-900/20"></div>}>
+          <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
+            <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />
+            <ambientLight intensity={0.12} />
+            <pointLight position={[-10, -10, -10]} color="#ff007f" intensity={0.5} />
+            <directionalLight position={[0, 5, -5]} intensity={0.85} color="#ff007f" />
+            <Suspense fallback={null}>
+              <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                <CustomModelLoader url={modelUrl} />
+              </Float>
+              <Environment preset="city" environmentIntensity={0.35} />
+              <ContactShadows opacity={0.4} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
+            </Suspense>
+          </Canvas>
+        </ErrorBoundary>
       </div>
 
       <AnimatePresence>
