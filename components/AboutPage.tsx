@@ -253,17 +253,61 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="relative px-6 py-2 text-[28px] font-black tracking-[-0.15em] uppercase transition-all pointer-events-auto cursor-none active:scale-90 z-10"
+                      className="relative px-8 py-3 text-[32px] font-black tracking-[-0.1em] uppercase transition-all pointer-events-auto cursor-none active:scale-95 z-10 overflow-hidden"
                       style={{ 
-                        filter: 'url(#natural-stone)',
-                        color: '#ff007f',
-                        textShadow: isHoveringBtn 
-                          ? `0 1px 0 #cc0066, 0 2px 0 #aa0055, 0 3px 0 #880044, 0 4px 0 #660033, 0 8px 15px rgba(255,0,127,0.4)`
-                          : `0 1px 0 #99004d, 0 2px 0 #77003c, 0 3px 0 #55002b, 0 5px 8px rgba(0,0,0,0.5)`,
-                        transform: isHoveringBtn ? 'translateY(-3px)' : 'translateY(0)',
+                        background: isHoveringBtn 
+                          ? 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #1a1a1a 100%)'
+                          : 'linear-gradient(135deg, #0f0f0f 0%, #050505 50%, #0f0f0f 100%)',
+                        backgroundSize: '200% 200%',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '4px',
+                        boxShadow: isHoveringBtn 
+                          ? `
+                            inset 0 1px 0 rgba(255,255,255,0.15),
+                            inset 0 -1px 0 rgba(0,0,0,0.8),
+                            0 4px 12px rgba(0,0,0,0.8),
+                            0 8px 24px rgba(0,0,0,0.6),
+                            0 0 40px rgba(255,255,255,0.05)
+                          `
+                          : `
+                            inset 0 1px 0 rgba(255,255,255,0.1),
+                            inset 0 -1px 0 rgba(0,0,0,0.9),
+                            0 2px 8px rgba(0,0,0,0.9),
+                            0 4px 16px rgba(0,0,0,0.7)
+                          `,
+                        textShadow: isHoveringBtn
+                          ? `
+                            0 0 10px rgba(255,255,255,0.3),
+                            0 1px 2px rgba(0,0,0,0.8),
+                            0 2px 4px rgba(0,0,0,0.6)
+                          `
+                          : `
+                            0 0 5px rgba(255,255,255,0.2),
+                            0 1px 2px rgba(0,0,0,0.9)
+                          `,
+                        transform: isHoveringBtn ? 'translateY(-2px)' : 'translateY(0)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
                       }}
                     >
-                      ?????
+                      {/* Reflective shine overlay */}
+                      <div 
+                        className="absolute inset-0 opacity-20 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
+                          animation: isHoveringBtn ? 'shine 2s infinite' : 'none',
+                        }}
+                      />
+                      {/* Asphalt texture noise */}
+                      <div 
+                        className="absolute inset-0 opacity-40 pointer-events-none mix-blend-overlay"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                          backgroundSize: '100px 100px',
+                        }}
+                      />
+                      <span className="relative z-10">?????</span>
                     </motion.button>
                   )}
                 </AnimatePresence>
