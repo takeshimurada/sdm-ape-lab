@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테스트 페이지</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 배포 성공!</h1>
+        <p>서대문 유인원 연구회 | SDM APE LAB</p>
+        <div class="status">
+            <p>✅ HTML 로딩: 완료</p>
+            <p>✅ CSS 스타일: 적용됨</p>
+            <p>✅ Cloudflare Pages: 작동 중</p>
+            <p id="js-test">⏳ JavaScript: 테스트 중...</p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('js-test').textContent = '✅ JavaScript: 작동 중';
+        console.log('페이지가 정상적으로 로드되었습니다!');
+    </script>
+</body>
+</html>
