@@ -1,7 +1,7 @@
 
-import React, { useRef, useLayoutEffect, useState } from 'react';
-import { useGLTF } from '@react-three/drei';
+import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 
 interface CustomModelLoaderProps {
@@ -119,13 +119,35 @@ const MetaLabGooeyDrip: React.FC<{ position: [number, number, number], active: b
 };
 
 const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
-  const { scene } = useGLTF(url);
+  const [scene, setScene] = useState<THREE.Object3D | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
   const noseLight = useRef<THREE.PointLight>(null);
   
   const { mouse, viewport } = useThree();
   const [scale, setScale] = useState(1);
   const [hoveringNose, setHoveringNose] = useState(false);
+
+  // Load model with GLTFLoader directly
+  useEffect(() => {
+    const loader = new GLTFLoader();
+    
+    loader.load(
+      url,
+      (gltf) => {
+        console.log('Model loaded successfully!', gltf);
+        setScene(gltf.scene);
+        setLoadError(null);
+      },
+      (progress) => {
+        console.log('Loading:', (progress.loaded / progress.total * 100).toFixed(2) + '%');
+      },
+      (error) => {
+        console.error('Error loading model:', error);
+        setLoadError(error.message);
+      }
+    );
+  }, [url]);
 
   useLayoutEffect(() => {
     if (scene) {
@@ -171,6 +193,16 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
       noseLight.current.intensity = THREE.MathUtils.lerp(noseLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
     }
   });
+
+  // Show error or loading state
+  if (loadError) {
+    console.error('Model failed to load:', loadError);
+    return null;
+  }
+
+  if (!scene) {
+    return null; // Loading...
+  }
 
   return (
     <group ref={groupRef}>
