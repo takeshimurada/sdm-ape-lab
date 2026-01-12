@@ -259,20 +259,9 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   const [scene, setScene] = useState<THREE.Object3D | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
-  const leftNostrilLight = useRef<THREE.PointLight>(null);
-  const rightNostrilLight = useRef<THREE.PointLight>(null);
   
   const { mouse, viewport } = useThree();
   const [scale, setScale] = useState(1);
-  const [hoveringNose, setHoveringNose] = useState(false);
-  const [pressingNose, setPressingNose] = useState(false);
-
-  // Notify parent when pressing state changes
-  useEffect(() => {
-    if (onNosePress) {
-      onNosePress(pressingNose);
-    }
-  }, [pressingNose, onNosePress]);
 
   // Load model with GLTFLoader directly
   useEffect(() => {
@@ -348,17 +337,6 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
     const targetY = (mouse.x * viewport.width) / ANIMATION_CONFIG.MOUSE_SENSITIVITY;
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, ANIMATION_CONFIG.LERP_SPEED);
     groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
-
-    // Both nostrils always glow when pressing
-    const targetInt = pressingNose ? ANIMATION_CONFIG.NOSE_LIGHT_INTENSITY : 0;
-    
-    if (leftNostrilLight.current) {
-      leftNostrilLight.current.intensity = THREE.MathUtils.lerp(leftNostrilLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
-    }
-    
-    if (rightNostrilLight.current) {
-      rightNostrilLight.current.intensity = THREE.MathUtils.lerp(rightNostrilLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
-    }
   });
 
   // Show error or loading state
@@ -374,49 +352,6 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   return (
     <group ref={groupRef}>
       <primitive object={scene} scale={scale} />
-
-      {/* interaction Area */}
-      <group>
-        {/* 코 히트박스 */}
-        <mesh 
-          position={GEOMETRY_CONFIG.NOSE_POSITION}
-          onPointerOver={() => setHoveringNose(true)} 
-          onPointerOut={() => {
-            setHoveringNose(false);
-            setPressingNose(false); // Release when leaving
-          }}
-          onPointerDown={() => setPressingNose(true)}
-          onPointerUp={() => setPressingNose(false)}
-          visible={false}
-        >
-          <boxGeometry args={GEOMETRY_CONFIG.NOSE_HITBOX_SIZE} />
-        </mesh>
-
-        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} delay={0} />
-        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} delay={1.1} />
-
-        {/* 3D Light Beams from nostrils */}
-        <LightBeam position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} direction={-1} />
-        <LightBeam position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} direction={1} />
-
-        {/* Left nostril light */}
-        <pointLight 
-          ref={leftNostrilLight} 
-          position={GEOMETRY_CONFIG.LIGHT_POSITION_LEFT}
-          color={MATERIAL_CONFIG.LIGHT_COLOR}
-          distance={GEOMETRY_CONFIG.LIGHT_DISTANCE}
-          decay={GEOMETRY_CONFIG.LIGHT_DECAY}
-        />
-        
-        {/* Right nostril light */}
-        <pointLight 
-          ref={rightNostrilLight} 
-          position={GEOMETRY_CONFIG.LIGHT_POSITION_RIGHT}
-          color={MATERIAL_CONFIG.LIGHT_COLOR}
-          distance={GEOMETRY_CONFIG.LIGHT_DISTANCE}
-          decay={GEOMETRY_CONFIG.LIGHT_DECAY}
-        />
-      </group>
     </group>
   );
 };

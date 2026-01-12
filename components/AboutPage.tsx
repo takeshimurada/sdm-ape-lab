@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
 import CustomModelLoader from './CustomModelLoader';
-import SplineLiquidOverlay from './SplineLiquidOverlay';
 
 interface AboutPageProps {
   modelUrl: string;
@@ -164,7 +163,6 @@ const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boole
 const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTranslating, onTranslateSystem, onExit }) => {
   const [isTextFinished, setIsTextFinished] = useState(false);
   const [isHoveringBtn, setIsHoveringBtn] = useState(false);
-  const [isPressingNose, setIsPressingNose] = useState(false);
 
   const formattedText = useMemo(() => {
     return text.split('.').map(s => s.trim()).filter(s => s.length > 0).join('.\n');
@@ -191,15 +189,15 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
         <ErrorBoundary fallback={<div className="w-full h-full bg-gradient-to-br from-pink-900/20 to-purple-900/20"></div>}>
           <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />
-            <ambientLight intensity={0.12} />
-            <pointLight position={[-10, -10, -10]} color="#ff007f" intensity={0.5} />
-            <directionalLight position={[0, 5, -5]} intensity={0.85} color="#ff007f" />
+            <ambientLight intensity={0.08} />
+            <pointLight position={[-10, -10, -10]} color="#ff007f" intensity={0.3} />
+            <directionalLight position={[0, 5, -5]} intensity={0.5} color="#ff007f" />
             <Suspense fallback={null}>
               <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                <CustomModelLoader url={modelUrl} onNosePress={setIsPressingNose} />
+                <CustomModelLoader url={modelUrl} />
               </Float>
-              <Environment preset="city" environmentIntensity={0.35} />
-              <ContactShadows opacity={0.4} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
+              <Environment preset="city" environmentIntensity={0.2} />
+              <ContactShadows opacity={0.6} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
             </Suspense>
           </Canvas>
         </ErrorBoundary>
@@ -314,10 +312,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Spline Liquid Overlays for both nostrils */}
-      <SplineLiquidOverlay active={isPressingNose} nostrilSide="left" />
-      <SplineLiquidOverlay active={isPressingNose} nostrilSide="right" />
     </motion.div>
   );
 };
