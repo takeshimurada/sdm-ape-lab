@@ -8,7 +8,7 @@ import ArchiveGrid from './components/ArchiveGrid';
 
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
-const MODEL_URL = '/face.glb';
+const MODEL_URL = '/face-v2.glb';
 const SPRING_CONFIG = { damping: 35, stiffness: 350 };
 const LOADER_DURATION = 1500;
 
