@@ -28,8 +28,10 @@ const ANIMATION_CONFIG = {
   DRIP_SURFACE_STICK: 0.08,
   OPACITY_ACTIVE: 0.92,
   EMISSIVE_INTENSITY_ACTIVE: 18,
-  NOSE_LIGHT_INTENSITY: 3, // Reduced for subtle glow
-  NOSE_LIGHT_HOVER_INTENSITY: 8, // Increased when pressing
+  NOSE_LIGHT_INTENSITY: 6, // Glow intensity for left nostril
+  NOSE_LIGHT_HOVER_INTENSITY: 6, // Same intensity for right nostril
+  NOSTRIL_LIGHT_DISTANCE: 0.5, // Light distance from nostril
+  NOSTRIL_LIGHT_DECAY: 1.5 // Light decay rate
 } as const;
 
 // Constants for geometry
@@ -40,9 +42,10 @@ const GEOMETRY_CONFIG = {
   NOSTRIL_RIGHT: [0.08, 0.05, 0.95] as [number, number, number],  // Much higher and forward
   NOSE_POSITION: [0, 0.02, 0.98] as [number, number, number],      // Hitbox higher
   NOSE_HITBOX_SIZE: [0.5, 0.3, 0.35] as [number, number, number],  // Smaller hitbox
-  LIGHT_POSITION: [0, 0.0, 1.0] as [number, number, number],       // Light at nose tip
-  LIGHT_DISTANCE: 0.4, // Focused small radius
-  LIGHT_DECAY: 1.8,    // Less decay for better visibility
+  LIGHT_POSITION_LEFT: [-0.08, 0.05, 0.95] as [number, number, number],  // Left nostril light
+  LIGHT_POSITION_RIGHT: [0.08, 0.05, 0.95] as [number, number, number], // Right nostril light
+  LIGHT_DISTANCE: 0.5, // Focused small radius
+  LIGHT_DECAY: 1.5    // Less decay for better visibility
 } as const;
 
 // Constants for material
@@ -153,7 +156,8 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
   const [scene, setScene] = useState<THREE.Object3D | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
-  const noseLight = useRef<THREE.PointLight>(null);
+  const leftNostrilLight = useRef<THREE.PointLight>(null);
+  const rightNostrilLight = useRef<THREE.PointLight>(null);
   
   const { mouse, viewport } = useThree();
   const [scale, setScale] = useState(1);
@@ -235,12 +239,15 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
     groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, ANIMATION_CONFIG.LERP_SPEED);
     groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
 
-    if (noseLight.current) {
-      // Subtle glow when hovering, brighter when pressing
-      const targetInt = pressingNose 
-        ? ANIMATION_CONFIG.NOSE_LIGHT_HOVER_INTENSITY 
-        : (hoveringNose ? ANIMATION_CONFIG.NOSE_LIGHT_INTENSITY : 0);
-      noseLight.current.intensity = THREE.MathUtils.lerp(noseLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
+    // Both nostrils always glow when pressing
+    const targetInt = pressingNose ? ANIMATION_CONFIG.NOSE_LIGHT_INTENSITY : 0;
+    
+    if (leftNostrilLight.current) {
+      leftNostrilLight.current.intensity = THREE.MathUtils.lerp(leftNostrilLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
+    }
+    
+    if (rightNostrilLight.current) {
+      rightNostrilLight.current.intensity = THREE.MathUtils.lerp(rightNostrilLight.current.intensity, targetInt, ANIMATION_CONFIG.LERP_SPEED);
     }
   });
 
@@ -278,9 +285,19 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
         <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} delay={0} />
         <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} delay={1.1} />
 
+        {/* Left nostril light */}
         <pointLight 
-          ref={noseLight} 
-          position={GEOMETRY_CONFIG.LIGHT_POSITION}
+          ref={leftNostrilLight} 
+          position={GEOMETRY_CONFIG.LIGHT_POSITION_LEFT}
+          color={MATERIAL_CONFIG.LIGHT_COLOR}
+          distance={GEOMETRY_CONFIG.LIGHT_DISTANCE}
+          decay={GEOMETRY_CONFIG.LIGHT_DECAY}
+        />
+        
+        {/* Right nostril light */}
+        <pointLight 
+          ref={rightNostrilLight} 
+          position={GEOMETRY_CONFIG.LIGHT_POSITION_RIGHT}
           color={MATERIAL_CONFIG.LIGHT_COLOR}
           distance={GEOMETRY_CONFIG.LIGHT_DISTANCE}
           decay={GEOMETRY_CONFIG.LIGHT_DECAY}

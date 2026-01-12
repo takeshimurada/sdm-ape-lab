@@ -65,7 +65,7 @@ const App: React.FC = () => {
 
   const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
     if (view === 'ABOUT' && currentView !== 'ABOUT') {
-      // Start translation immediately without showing Korean first
+      // Start with random foreign language immediately
       setIsTranslating(true);
       fetchTranslation("random");
     }
