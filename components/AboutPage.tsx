@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
 import CustomModelLoader from './CustomModelLoader';
+import SplineLiquidOverlay from './SplineLiquidOverlay';
 
 interface AboutPageProps {
   modelUrl: string;
@@ -163,6 +164,7 @@ const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boole
 const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTranslating, onTranslateSystem, onExit }) => {
   const [isTextFinished, setIsTextFinished] = useState(false);
   const [isHoveringBtn, setIsHoveringBtn] = useState(false);
+  const [isPressingNose, setIsPressingNose] = useState(false);
 
   const formattedText = useMemo(() => {
     return text.split('.').map(s => s.trim()).filter(s => s.length > 0).join('.\n');
@@ -194,7 +196,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
             <directionalLight position={[0, 5, -5]} intensity={0.85} color="#ff007f" />
             <Suspense fallback={null}>
               <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                <CustomModelLoader url={modelUrl} />
+                <CustomModelLoader url={modelUrl} onNosePress={setIsPressingNose} />
               </Float>
               <Environment preset="city" environmentIntensity={0.35} />
               <ContactShadows opacity={0.4} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
@@ -312,6 +314,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Spline Liquid Overlays for both nostrils */}
+      <SplineLiquidOverlay active={isPressingNose} nostrilSide="left" />
+      <SplineLiquidOverlay active={isPressingNose} nostrilSide="right" />
     </motion.div>
   );
 };

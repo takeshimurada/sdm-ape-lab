@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 interface CustomModelLoaderProps {
   url: string;
+  onNosePress?: (pressing: boolean) => void;
 }
 
 // Constants for 3D model configuration
@@ -254,7 +255,7 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
   );
 };
 
-const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
+const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress }) => {
   const [scene, setScene] = useState<THREE.Object3D | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -265,6 +266,13 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
   const [scale, setScale] = useState(1);
   const [hoveringNose, setHoveringNose] = useState(false);
   const [pressingNose, setPressingNose] = useState(false);
+
+  // Notify parent when pressing state changes
+  useEffect(() => {
+    if (onNosePress) {
+      onNosePress(pressingNose);
+    }
+  }, [pressingNose, onNosePress]);
 
   // Load model with GLTFLoader directly
   useEffect(() => {
