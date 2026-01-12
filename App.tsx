@@ -64,12 +64,11 @@ const App: React.FC = () => {
   }, [ai]);
 
   const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
+    setCurrentView(view);
     if (view === 'ABOUT' && currentView !== 'ABOUT') {
       // Start with random foreign language immediately
-      setIsTranslating(true);
       fetchTranslation("random");
     }
-    setCurrentView(view);
   }, [currentView, fetchTranslation]);
 
   const handleSystemTranslate = useCallback(() => {

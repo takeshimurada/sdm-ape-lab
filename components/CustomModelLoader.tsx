@@ -60,6 +60,66 @@ const MATERIAL_CONFIG = {
 } as const;
 
 /**
+ * 콧구멍에서 나오는 3D 광선 빔
+ * 원뿔 형태로 빛이 발사되는 효과
+ */
+const LightBeam: React.FC<{ position: [number, number, number], active: boolean, direction: number }> = ({ position, active, direction }) => {
+  const beamRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (!beamRef.current) return;
+    
+    const material = beamRef.current.material as THREE.MeshPhysicalMaterial;
+    const t = state.clock.getElapsedTime();
+    
+    if (active) {
+      // 빛의 강도와 길이 애니메이션
+      const pulseIntensity = 0.8 + Math.sin(t * 4) * 0.2;
+      material.opacity = THREE.MathUtils.lerp(material.opacity, 0.6 * pulseIntensity, 0.1);
+      material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, 25 * pulseIntensity, 0.1);
+      
+      // 광선 길이 애니메이션
+      const scaleY = THREE.MathUtils.lerp(beamRef.current.scale.y, 1.5 + Math.sin(t * 3) * 0.3, 0.08);
+      beamRef.current.scale.y = scaleY;
+      
+      // 약간의 회전 효과
+      beamRef.current.rotation.z = Math.sin(t * 2) * 0.05;
+    } else {
+      // 비활성화: 사라짐
+      material.opacity = THREE.MathUtils.lerp(material.opacity, 0, 0.15);
+      material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, 0, 0.15);
+      beamRef.current.scale.y = THREE.MathUtils.lerp(beamRef.current.scale.y, 0.1, 0.1);
+    }
+  });
+
+  return (
+    <mesh
+      ref={beamRef}
+      position={[position[0], position[1] - 0.3, position[2]]}
+      rotation={[0, 0, direction * Math.PI / 12]}
+    >
+      {/* 원뿔 형태의 광선 */}
+      <coneGeometry args={[0.04, 0.6, 16, 1, true]} />
+      <meshPhysicalMaterial
+        color={MATERIAL_CONFIG.COLOR}
+        emissive={MATERIAL_CONFIG.EMISSIVE}
+        emissiveIntensity={0}
+        transparent
+        opacity={0}
+        side={THREE.DoubleSide}
+        roughness={0}
+        metalness={0}
+        transmission={0.9}
+        ior={MATERIAL_CONFIG.IOR}
+        thickness={0.3}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+};
+
+/**
  * 콧구멍에서 표면을 타고 흐르는 점성 액체
  * 여러 개의 구체가 연결되어 실제 액체처럼 흐름
  */
@@ -284,6 +344,10 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
 
         <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} delay={0} />
         <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} delay={1.1} />
+
+        {/* 3D Light Beams from nostrils */}
+        <LightBeam position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={pressingNose} direction={-1} />
+        <LightBeam position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={pressingNose} direction={1} />
 
         {/* Left nostril light */}
         <pointLight 
