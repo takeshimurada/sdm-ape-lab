@@ -132,21 +132,36 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
   useEffect(() => {
     const loader = new GLTFLoader();
     
-    loader.load(
-      url,
-      (gltf) => {
-        console.log('Model loaded successfully!', gltf);
-        setScene(gltf.scene);
-        setLoadError(null);
-      },
-      (progress) => {
-        console.log('Loading:', (progress.loaded / progress.total * 100).toFixed(2) + '%');
-      },
-      (error) => {
-        console.error('Error loading model:', error);
+    // Fetch the file as ArrayBuffer first to ensure proper binary handling
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch model: ${response.status}`);
+        }
+        return response.arrayBuffer();
+      })
+      .then(arrayBuffer => {
+        console.log('File downloaded, size:', (arrayBuffer.byteLength / 1024 / 1024).toFixed(2) + 'MB');
+        
+        // Parse the ArrayBuffer
+        loader.parse(
+          arrayBuffer,
+          '',
+          (gltf) => {
+            console.log('Model loaded successfully!', gltf);
+            setScene(gltf.scene);
+            setLoadError(null);
+          },
+          (error) => {
+            console.error('Error parsing model:', error);
+            setLoadError(error.message || 'Failed to parse model');
+          }
+        );
+      })
+      .catch(error => {
+        console.error('Error fetching model:', error);
         setLoadError(error.message);
-      }
-    );
+      });
   }, [url]);
 
   useLayoutEffect(() => {
