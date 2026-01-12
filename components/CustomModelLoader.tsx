@@ -3,7 +3,6 @@ import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
-import GreenMolecule from './GreenMolecule';
 
 interface CustomModelLoaderProps {
   url: string;
@@ -263,7 +262,6 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   
   const { mouse, viewport } = useThree();
   const [scale, setScale] = useState(1);
-  const [pressingNose, setPressingNose] = useState(false);
 
   // Load model with GLTFLoader directly
   useEffect(() => {
@@ -354,37 +352,6 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   return (
     <group ref={groupRef}>
       <primitive object={scene} scale={scale} />
-      
-      {/* Nose Hitbox for interaction */}
-      <mesh 
-        position={GEOMETRY_CONFIG.NOSE_POSITION}
-        onPointerDown={() => setPressingNose(true)}
-        onPointerUp={() => setPressingNose(false)}
-        onPointerOut={() => setPressingNose(false)}
-        visible={false}
-      >
-        <boxGeometry args={GEOMETRY_CONFIG.NOSE_HITBOX_SIZE} />
-      </mesh>
-
-      {/* Green molecules from left nostril */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <GreenMolecule 
-          key={`left-${i}`}
-          position={GEOMETRY_CONFIG.NOSTRIL_LEFT} 
-          active={pressingNose} 
-          delay={i * 0.5} 
-        />
-      ))}
-
-      {/* Green molecules from right nostril */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <GreenMolecule 
-          key={`right-${i}`}
-          position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} 
-          active={pressingNose} 
-          delay={i * 0.5 + 0.3} 
-        />
-      ))}
     </group>
   );
 };

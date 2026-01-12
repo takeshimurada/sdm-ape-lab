@@ -308,17 +308,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                     </motion.button>
                   )}
                 </AnimatePresence>
-                
-                <AnimatePresence>
-                  {isHoveringBtn && isTextFinished && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1.4 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="absolute inset-0 m-auto w-44 h-16 bg-pink-500/10 blur-[40px] rounded-full pointer-events-none z-0"
-                    />
-                  )}
-                </AnimatePresence>
               </div>
             </div>
 
