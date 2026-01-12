@@ -19,8 +19,8 @@ const MODEL_CONFIG = {
 
 // Constants for animation
 const ANIMATION_CONFIG = {
-  MOUSE_SENSITIVITY: 15,
-  LERP_SPEED: 0.12,
+  MOUSE_SENSITIVITY: 10,
+  LERP_SPEED: 0.18,
   DRIP_SPEED: 0.15,
   DRIP_COUNT: 8, // Number of segments in the drip
   DRIP_SEGMENT_SIZE: 0.028,

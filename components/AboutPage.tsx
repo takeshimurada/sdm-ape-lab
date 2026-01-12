@@ -36,8 +36,8 @@ class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode
 
 // Constants
 const CHARS = '01';
-const SCRAMBLE_SPEED = 40;
-const SCRAMBLE_INCREMENT = 0.8;
+const SCRAMBLE_SPEED = 15; // Faster: 40 → 15
+const SCRAMBLE_INCREMENT = 2.0; // Faster: 0.8 → 2.0
 const DOT_INTERVAL = 400;
 
 const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: () => void }> = ({ text, isDecoding, onComplete }) => {
@@ -49,17 +49,24 @@ const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: 
   }, [text]);
 
   useEffect(() => {
-    // Clear text while translating
+    // During translation, show scrambled version of current text
     if (isDecoding) {
-      setDisplayText('');
-      return;
+      // Keep showing scrambled current text instead of clearing
+      const scrambled = text.split('').map(c => (c === '\n' || c === ' ' ? c : CHARS[Math.floor(Math.random() * 2)])).join('');
+      setDisplayText(scrambled);
+      
+      // Animate scrambling while translating
+      const scrambleInterval = setInterval(() => {
+        const scrambled = text.split('').map(c => (c === '\n' || c === ' ' ? c : CHARS[Math.floor(Math.random() * 2)])).join('');
+        setDisplayText(scrambled);
+      }, 100);
+      
+      return () => clearInterval(scrambleInterval);
     }
 
-    // Start text animation
+    // Start text animation after translation
     let iteration = 0;
     const maxIterations = text.length;
-    
-    setDisplayText('');
 
     const interval = setInterval(() => {
       setDisplayText(
@@ -96,7 +103,7 @@ const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: 
         display: 'inline-block',
       }}
     >
-      {displayText || (isDecoding ? '' : initialBinary)}
+      {displayText || initialBinary}
     </span>
   );
 };
@@ -220,15 +227,11 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                     }}
                     className="text-2xl md:text-4xl leading-[1.6] font-bold"
                   >
-                    {isTranslating ? (
-                      <LoadingDots />
-                    ) : (
-                      <ScrambledText 
-                        text={formattedText} 
-                        isDecoding={isTranslating} 
-                        onComplete={handleTextComplete} 
-                      />
-                    )}
+                    <ScrambledText 
+                      text={formattedText} 
+                      isDecoding={isTranslating} 
+                      onComplete={handleTextComplete} 
+                    />
                   </p>
                 </div>
                 {!isTranslating && (
