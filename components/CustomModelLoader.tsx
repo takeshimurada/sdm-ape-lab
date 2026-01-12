@@ -21,10 +21,10 @@ const MODEL_CONFIG = {
 const ANIMATION_CONFIG = {
   MOUSE_SENSITIVITY: 10,
   LERP_SPEED: 0.18,
-  DRIP_SPEED: 0.15,
-  DRIP_COUNT: 8, // Number of segments in the drip
+  DRIP_SPEED: 0.2,
+  DRIP_COUNT: 12, // More segments for continuous flow
   DRIP_SEGMENT_SIZE: 0.028,
-  DRIP_LENGTH: 0.35,
+  DRIP_LENGTH: 0.6, // Longer flow distance
   DRIP_SURFACE_STICK: 0.08,
   OPACITY_ACTIVE: 0.92,
   EMISSIVE_INTENSITY_ACTIVE: 18,
@@ -41,8 +41,8 @@ const GEOMETRY_CONFIG = {
   NOSE_POSITION: [0, -0.25, 0.9] as [number, number, number],
   NOSE_HITBOX_SIZE: [0.55, 0.35, 0.4] as [number, number, number],
   LIGHT_POSITION: [0, -0.4, 1.0] as [number, number, number],
-  LIGHT_DISTANCE: 0.4, // Reduced from 0.8 for smaller radius
-  LIGHT_DECAY: 2.5,
+  LIGHT_DISTANCE: 0.5, // Small focused radius
+  LIGHT_DECAY: 2.0,
 } as const;
 
 // Constants for material
@@ -76,11 +76,12 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
       const material = segment.material as THREE.MeshPhysicalMaterial;
       
       if (active) {
-        // 시간차를 두고 각 세그먼트가 나타남
-        const segmentDelay = i * 0.15;
-        const segmentProgress = Math.max(0, Math.min(1, (t - segmentDelay) * 0.8));
+        // 끝없이 반복되는 흐름 애니메이션
+        const segmentDelay = i * 0.2;
+        const loopTime = (t - segmentDelay) % 3.0; // 3초마다 루프
+        const segmentProgress = Math.max(0, Math.min(1, loopTime * 0.5));
         
-        // Y축: 아래로 흐름
+        // Y축: 아래로 흐름 (끝없이 반복)
         const flowDistance = segmentProgress * ANIMATION_CONFIG.DRIP_LENGTH;
         segment.position.y = position[1] - flowDistance;
         
@@ -96,16 +97,16 @@ const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], activ
         const scale = 0.7 + segmentProgress * 0.3 + Math.sin(t * 3 + i) * 0.1;
         segment.scale.setScalar(scale);
         
-        // 투명도: 부드럽게 나타남
+        // 투명도: 부드럽게 나타났다가 사라짐 (루프)
         const opacity = THREE.MathUtils.lerp(
           material.opacity,
-          Math.min(segmentProgress, ANIMATION_CONFIG.OPACITY_ACTIVE),
+          Math.min(segmentProgress * 2, ANIMATION_CONFIG.OPACITY_ACTIVE) * (1 - segmentProgress * 0.3),
           0.1
         );
         material.opacity = opacity;
         material.emissiveIntensity = THREE.MathUtils.lerp(
           material.emissiveIntensity,
-          segmentProgress * ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE,
+          segmentProgress * ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE * (1 - segmentProgress * 0.2),
           0.08
         );
       } else {
