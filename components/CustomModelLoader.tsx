@@ -36,13 +36,13 @@ const ANIMATION_CONFIG = {
 const GEOMETRY_CONFIG = {
   DRIP_RADIUS: 0.04,
   DRIP_SEGMENTS: 32,
-  NOSTRIL_LEFT: [-0.075, -0.05, 0.92] as [number, number, number],  // Y: -0.22 → -0.05 (위로)
-  NOSTRIL_RIGHT: [0.075, -0.05, 0.92] as [number, number, number], // Y: -0.22 → -0.05 (위로)
-  NOSE_POSITION: [0, -0.08, 0.95] as [number, number, number],      // 히트박스도 위로
-  NOSE_HITBOX_SIZE: [0.55, 0.35, 0.4] as [number, number, number],
-  LIGHT_POSITION: [0, -0.15, 1.0] as [number, number, number],      // 광선도 위로
-  LIGHT_DISTANCE: 0.5, // Small focused radius
-  LIGHT_DECAY: 2.0,
+  NOSTRIL_LEFT: [-0.08, 0.05, 0.95] as [number, number, number],   // Much higher and forward
+  NOSTRIL_RIGHT: [0.08, 0.05, 0.95] as [number, number, number],  // Much higher and forward
+  NOSE_POSITION: [0, 0.02, 0.98] as [number, number, number],      // Hitbox higher
+  NOSE_HITBOX_SIZE: [0.5, 0.3, 0.35] as [number, number, number],  // Smaller hitbox
+  LIGHT_POSITION: [0, 0.0, 1.0] as [number, number, number],       // Light at nose tip
+  LIGHT_DISTANCE: 0.4, // Focused small radius
+  LIGHT_DECAY: 1.8,    // Less decay for better visibility
 } as const;
 
 // Constants for material
