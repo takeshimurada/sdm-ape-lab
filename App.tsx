@@ -157,27 +157,30 @@ const App: React.FC = () => {
         }}
       >
         <div className="relative flex items-center justify-center">
-          {/* Constant Ambient Pink Glow - Softer brightness */}
+          {/* Subtle Ambient Glow - Always present */}
           <motion.div 
             animate={{ 
-              scale: isClicked ? 1.5 : 1,
-              opacity: isClicked ? 0.6 : 0.3
-            }}
-            transition={{ duration: 0.1 }}
-            className="absolute w-16 h-16 bg-pink-500/30 rounded-full blur-[20px] z-0" 
-          />
-          
-          {/* Continuous softer glow while holding click */}
-          <motion.div
-            animate={{
-              scale: isClicked ? 1.8 : 0.5,
-              opacity: isClicked ? 0.5 : 0
+              scale: isClicked ? 1.3 : 1,
+              opacity: isClicked ? 0.35 : 0.15
             }}
             transition={{ 
-              duration: 0.15,
-              ease: "easeOut"
+              duration: 0.4,
+              ease: [0.25, 0.1, 0.25, 1] // Smooth ease-in-out
             }}
-            className="absolute w-24 h-24 bg-pink-400/40 rounded-full blur-[25px] z-0"
+            className="absolute w-12 h-12 bg-pink-500/20 rounded-full blur-[15px] z-0" 
+          />
+          
+          {/* Gentle Light Bloom on Click - Smooth fade in/out */}
+          <motion.div
+            animate={{
+              scale: isClicked ? 1.6 : 0.3,
+              opacity: isClicked ? 0.4 : 0
+            }}
+            transition={{ 
+              duration: 0.5,
+              ease: [0.25, 0.1, 0.25, 1] // Smooth cubic-bezier
+            }}
+            className="absolute w-20 h-20 bg-pink-400/30 rounded-full blur-[20px] z-0"
           />
           
           {/* Central Cursor Icon */}
@@ -185,17 +188,18 @@ const App: React.FC = () => {
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
           
-          {/* Background Light Trail - Subtle */}
+          {/* Outer Soft Halo - Very subtle */}
           <motion.div 
              animate={{ 
-               scale: isClicked ? 1.3 : [1, 1.2, 1], 
-               opacity: isClicked ? 0.25 : [0.08, 0.15, 0.08]
+               scale: isClicked ? 1.4 : [1, 1.15, 1], 
+               opacity: isClicked ? 0.2 : [0.05, 0.1, 0.05]
              }}
              transition={{ 
                repeat: isClicked ? 0 : Infinity, 
-               duration: 2 
+               duration: 2.5,
+               ease: "easeInOut"
              }}
-             className="absolute w-32 h-32 bg-pink-600/15 rounded-full blur-[40px] z-[-1]"
+             className="absolute w-28 h-28 bg-pink-600/10 rounded-full blur-[35px] z-[-1]"
           />
         </div>
       </div>
