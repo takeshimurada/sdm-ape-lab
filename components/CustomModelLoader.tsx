@@ -21,16 +21,13 @@ const MODEL_CONFIG = {
 const ANIMATION_CONFIG = {
   MOUSE_SENSITIVITY: 15,
   LERP_SPEED: 0.12,
-  DRIP_SPEED: 0.12,
-  DRIP_SCALE_Y_BASE: 3.2,
-  DRIP_SCALE_Y_VARIATION: 0.6,
-  DRIP_SCALE_X_BASE: 0.6,
-  DRIP_SCALE_X_VARIATION: 0.05,
-  DRIP_SCALE_X_INACTIVE: 0.4,
-  DRIP_PROGRESS_MULTIPLIER: 0.035,
-  SURFACE_CURVE_MULTIPLIER: 0.065,
-  OPACITY_ACTIVE: 0.95,
-  EMISSIVE_INTENSITY_ACTIVE: 15,
+  DRIP_SPEED: 0.15,
+  DRIP_COUNT: 8, // Number of segments in the drip
+  DRIP_SEGMENT_SIZE: 0.028,
+  DRIP_LENGTH: 0.35,
+  DRIP_SURFACE_STICK: 0.08,
+  OPACITY_ACTIVE: 0.92,
+  EMISSIVE_INTENSITY_ACTIVE: 18,
   NOSE_LIGHT_INTENSITY: 5,
 } as const;
 
@@ -59,62 +56,94 @@ const MATERIAL_CONFIG = {
 } as const;
 
 /**
- * MetaLab 스타일의 고점성 표면 밀착 액체
- * 인중의 굴곡을 따라 흐르는 유기적인 점성체
+ * 콧구멍에서 표면을 타고 흐르는 점성 액체
+ * 여러 개의 구체가 연결되어 실제 액체처럼 흐름
  */
-const MetaLabGooeyDrip: React.FC<{ position: [number, number, number], active: boolean, delay: number }> = ({ position, active, delay }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.MeshPhysicalMaterial>(null);
+const SurfaceFlowingLiquid: React.FC<{ position: [number, number, number], active: boolean, delay: number }> = ({ position, active, delay }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const segmentsRef = useRef<THREE.Mesh[]>([]);
   
   useFrame((state) => {
-    if (!meshRef.current || !materialRef.current) return;
+    if (!groupRef.current) return;
     
     const t = state.clock.getElapsedTime() * ANIMATION_CONFIG.DRIP_SPEED + delay;
     
-    // 점성 스케일 애니메이션
-    const targetScaleY = active 
-      ? ANIMATION_CONFIG.DRIP_SCALE_Y_BASE + Math.sin(t * 2.5) * ANIMATION_CONFIG.DRIP_SCALE_Y_VARIATION 
-      : 0;
-    const targetScaleX = active 
-      ? ANIMATION_CONFIG.DRIP_SCALE_X_BASE + Math.cos(t * 1.5) * ANIMATION_CONFIG.DRIP_SCALE_X_VARIATION 
-      : ANIMATION_CONFIG.DRIP_SCALE_X_INACTIVE;
-    
-    meshRef.current.scale.y = THREE.MathUtils.lerp(meshRef.current.scale.y, targetScaleY, 0.04);
-    meshRef.current.scale.x = meshRef.current.scale.z = THREE.MathUtils.lerp(meshRef.current.scale.x, targetScaleX, 0.04);
-    
-    // 표면 추적 로직
-    const dripProgress = meshRef.current.scale.y * ANIMATION_CONFIG.DRIP_PROGRESS_MULTIPLIER;
-    meshRef.current.position.y = position[1] - dripProgress;
-    
-    const surfaceCurve = Math.sin(Math.min(dripProgress * 12.0, Math.PI)) * ANIMATION_CONFIG.SURFACE_CURVE_MULTIPLIER;
-    meshRef.current.position.z = position[2] + surfaceCurve;
-    
-    const targetOpacity = active ? ANIMATION_CONFIG.OPACITY_ACTIVE : 0;
-    const targetEmissive = active ? ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE : 0;
-    
-    materialRef.current.opacity = THREE.MathUtils.lerp(materialRef.current.opacity, targetOpacity, 0.06);
-    materialRef.current.emissiveIntensity = THREE.MathUtils.lerp(materialRef.current.emissiveIntensity, targetEmissive, 0.05);
+    // 각 세그먼트를 표면을 따라 배치
+    segmentsRef.current.forEach((segment, i) => {
+      if (!segment) return;
+      
+      const material = segment.material as THREE.MeshPhysicalMaterial;
+      
+      if (active) {
+        // 시간차를 두고 각 세그먼트가 나타남
+        const segmentDelay = i * 0.15;
+        const segmentProgress = Math.max(0, Math.min(1, (t - segmentDelay) * 0.8));
+        
+        // Y축: 아래로 흐름
+        const flowDistance = segmentProgress * ANIMATION_CONFIG.DRIP_LENGTH;
+        segment.position.y = position[1] - flowDistance;
+        
+        // Z축: 표면의 곡선을 따라감 (인중의 굴곡)
+        const surfaceCurve = Math.sin(flowDistance * 8.0) * ANIMATION_CONFIG.DRIP_SURFACE_STICK;
+        segment.position.z = position[2] + surfaceCurve;
+        
+        // X축: 약간의 흔들림 (자연스러운 흐름)
+        const wiggle = Math.sin(t * 2.0 + i * 0.5) * 0.008;
+        segment.position.x = position[0] + wiggle;
+        
+        // 크기: 흐르면서 약간씩 커짐
+        const scale = 0.7 + segmentProgress * 0.3 + Math.sin(t * 3 + i) * 0.1;
+        segment.scale.setScalar(scale);
+        
+        // 투명도: 부드럽게 나타남
+        const opacity = THREE.MathUtils.lerp(
+          material.opacity,
+          Math.min(segmentProgress, ANIMATION_CONFIG.OPACITY_ACTIVE),
+          0.1
+        );
+        material.opacity = opacity;
+        material.emissiveIntensity = THREE.MathUtils.lerp(
+          material.emissiveIntensity,
+          segmentProgress * ANIMATION_CONFIG.EMISSIVE_INTENSITY_ACTIVE,
+          0.08
+        );
+      } else {
+        // 비활성화: 사라짐
+        material.opacity = THREE.MathUtils.lerp(material.opacity, 0, 0.15);
+        material.emissiveIntensity = THREE.MathUtils.lerp(material.emissiveIntensity, 0, 0.15);
+        segment.scale.setScalar(THREE.MathUtils.lerp(segment.scale.x, 0.3, 0.1));
+      }
+    });
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[GEOMETRY_CONFIG.DRIP_RADIUS, GEOMETRY_CONFIG.DRIP_SEGMENTS, GEOMETRY_CONFIG.DRIP_SEGMENTS]} />
-      <meshPhysicalMaterial 
-        ref={materialRef}
-        color={MATERIAL_CONFIG.COLOR}
-        emissive={MATERIAL_CONFIG.EMISSIVE}
-        emissiveIntensity={0} 
-        transparent 
-        opacity={0}
-        roughness={0}
-        metalness={0.05}
-        transmission={MATERIAL_CONFIG.TRANSMISSION}
-        ior={MATERIAL_CONFIG.IOR}
-        thickness={MATERIAL_CONFIG.THICKNESS}
-        clearcoat={MATERIAL_CONFIG.CLEARCOAT}
-        blending={THREE.AdditiveBlending}
-      />
-    </mesh>
+    <group ref={groupRef}>
+      {Array.from({ length: ANIMATION_CONFIG.DRIP_COUNT }).map((_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            if (el) segmentsRef.current[i] = el;
+          }}
+          position={position}
+        >
+          <sphereGeometry args={[ANIMATION_CONFIG.DRIP_SEGMENT_SIZE, 16, 16]} />
+          <meshPhysicalMaterial
+            color={MATERIAL_CONFIG.COLOR}
+            emissive={MATERIAL_CONFIG.EMISSIVE}
+            emissiveIntensity={0}
+            transparent
+            opacity={0}
+            roughness={0}
+            metalness={0.05}
+            transmission={MATERIAL_CONFIG.TRANSMISSION}
+            ior={MATERIAL_CONFIG.IOR}
+            thickness={MATERIAL_CONFIG.THICKNESS}
+            clearcoat={MATERIAL_CONFIG.CLEARCOAT}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      ))}
+    </group>
   );
 };
 
@@ -235,8 +264,8 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url }) => {
           <boxGeometry args={GEOMETRY_CONFIG.NOSE_HITBOX_SIZE} />
         </mesh>
 
-        <MetaLabGooeyDrip position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={hoveringNose} delay={0} />
-        <MetaLabGooeyDrip position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={hoveringNose} delay={1.1} />
+        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_LEFT} active={hoveringNose} delay={0} />
+        <SurfaceFlowingLiquid position={GEOMETRY_CONFIG.NOSTRIL_RIGHT} active={hoveringNose} delay={1.1} />
 
         <pointLight 
           ref={noseLight} 

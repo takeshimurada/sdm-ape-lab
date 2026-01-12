@@ -81,19 +81,31 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Ultra-fast cursor movement using direct CSS transform (GPU accelerated)
+    // Ultra-fast cursor movement using RAF for 60fps+ performance
+    let rafId: number;
+    let mousePos = { x: -100, y: -100 };
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        // Use CSS transform for best performance - bypasses React rendering
-        cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-      }
+      mousePos.x = e.clientX;
+      mousePos.y = e.clientY;
     };
+
+    const updateCursor = () => {
+      if (cursorRef.current) {
+        // Direct style manipulation - bypasses ALL React overhead
+        cursorRef.current.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`;
+      }
+      rafId = requestAnimationFrame(updateCursor);
+    };
+
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
+    
+    rafId = requestAnimationFrame(updateCursor);
 
     const timer = setTimeout(() => setIsLoaded(true), LOADER_DURATION);
     
@@ -101,6 +113,7 @@ const App: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
+      cancelAnimationFrame(rafId);
       clearTimeout(timer);
     };
   }, []);
