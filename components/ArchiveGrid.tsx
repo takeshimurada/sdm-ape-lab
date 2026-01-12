@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Archive item type definition
 interface ArchiveItem {
@@ -8,142 +8,196 @@ interface ArchiveItem {
   type: 'image' | 'video';
   url: string;
   title: string;
-  description?: string;
+  tags: string[];
+  year: string;
 }
 
-// Constants
+// Constants - Mouthwash Studio Style
 const ANIMATION_CONFIG = {
-  STAGGER_DELAY: 0.1,
-  HOVER_SCALE: 1.02,
-  TRANSITION_DURATION: 0.5,
+  STAGGER_DELAY: 0.08,
+  HOVER_DURATION: 0.6,
+  CARD_EASE: [0.22, 1, 0.36, 1], // Custom easing
 } as const;
 
+// 실제 프로젝트 데이터로 교체 가능
 const ARCHIVE_ITEMS: ArchiveItem[] = [
   { 
     id: 1, 
     type: 'image', 
-    url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecee?auto=format&fit=crop&q=80&w=800', 
-    title: 'Morphological Study 01',
-    description: '형태학적 연구 01'
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1600', 
+    title: 'Synthetic Structures',
+    tags: ['Research', 'Form', 'Visual Identity'],
+    year: '2025'
   },
   { 
     id: 2, 
     type: 'video', 
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-futuristic-abstract-shapes-rotating-97-large.mp4', 
-    title: 'Neurological Sync',
-    description: '신경학적 동기화'
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-342-large.mp4', 
+    title: 'Neural Pathways',
+    tags: ['Motion', 'Digital', 'Experimental'],
+    year: '2025'
   },
   { 
     id: 3, 
     type: 'image', 
-    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=800', 
-    title: 'Synthetic Skin',
-    description: '합성 피부'
+    url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1600', 
+    title: 'Observation Studies',
+    tags: ['Photography', 'Analysis'],
+    year: '2024'
   },
   { 
     id: 4, 
     type: 'image', 
-    url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=800', 
-    title: 'Gaze Analysis',
-    description: '시선 분석'
+    url: 'https://images.unsplash.com/photo-1579546671585-6188a61ce002?auto=format&fit=crop&q=80&w=1600', 
+    title: 'Color Theory',
+    tags: ['Research', 'Visual'],
+    year: '2024'
   },
   { 
     id: 5, 
     type: 'video', 
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-342-large.mp4', 
-    title: 'Data Stream',
-    description: '데이터 스트림'
+    url: 'https://assets.mixkit.co/videos/preview/mixkit-futuristic-abstract-shapes-rotating-97-large.mp4', 
+    title: 'Morphological Study',
+    tags: ['3D', 'Animation', 'Experimental'],
+    year: '2024'
   },
   { 
     id: 6, 
     type: 'image', 
-    url: 'https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=800', 
-    title: 'Internal Structure',
-    description: '내부 구조'
-  },
-  { 
-    id: 7, 
-    type: 'image', 
-    url: 'https://images.unsplash.com/photo-1579546671585-6188a61ce002?auto=format&fit=crop&q=80&w=800', 
-    title: 'Chromatic Shift',
-    description: '색채 이동'
-  },
-  { 
-    id: 8, 
-    type: 'video', 
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-close-up-of-a-human-eye-refracting-light-2728-large.mp4', 
-    title: 'Visual Cortex',
-    description: '시각 피질'
+    url: 'https://images.unsplash.com/photo-1614728263952-84ea206f99b6?auto=format&fit=crop&q=80&w=1600', 
+    title: 'Internal Systems',
+    tags: ['Anatomy', 'Research'],
+    year: '2024'
   },
 ];
 
-// Separate component for better performance
+// Mouthwash-style Archive Card
 const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo(({ item, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <motion.div
-      key={item.id}
-      initial={{ opacity: 0, y: 20 }}
+    <motion.article
+      initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * ANIMATION_CONFIG.STAGGER_DELAY }}
-      whileHover={{ scale: ANIMATION_CONFIG.HOVER_SCALE }}
-      className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-zinc-900 border border-white/5 cursor-none"
+      transition={{ 
+        delay: index * ANIMATION_CONFIG.STAGGER_DELAY,
+        duration: 0.7,
+        ease: ANIMATION_CONFIG.CARD_EASE
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative cursor-none"
     >
-      {item.type === 'video' ? (
-        <video 
-          src={item.url} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500"
-        />
-      ) : (
-        <img 
-          src={item.url} 
-          alt={item.title} 
-          loading="lazy"
-          className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-500"
-        />
-      )}
-      
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-        <span className="text-[10px] text-pink-500 font-black tracking-widest uppercase mb-1">
-          Entry #{item.id}
-        </span>
-        <h3 className="text-xl font-bold text-white">{item.title}</h3>
-        {item.description && (
-          <p className="text-sm text-gray-400 mt-1">{item.description}</p>
+      {/* Media Container */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-zinc-950">
+        {item.type === 'video' ? (
+          <video 
+            src={item.url} 
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            className="w-full h-full object-cover"
+            style={{
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)'
+            }}
+          />
+        ) : (
+          <img 
+            src={item.url} 
+            alt={item.title} 
+            loading="lazy"
+            className="w-full h-full object-cover"
+            style={{
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+              transition: 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)'
+            }}
+          />
         )}
+        
+        {/* Hover Overlay */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          className="absolute inset-0 bg-black/20"
+        />
       </div>
-    </motion.div>
+
+      {/* Content - Always Visible (Mouthwash Style) */}
+      <div className="mt-5">
+        {/* Title */}
+        <motion.h3 
+          className="text-white text-xl font-normal mb-2 leading-tight"
+          style={{
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-0.01em'
+          }}
+        >
+          {item.title}
+        </motion.h3>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {item.tags.map((tag, idx) => (
+            <span 
+              key={idx}
+              className="text-gray-400 text-xs font-light"
+              style={{ letterSpacing: '0.02em' }}
+            >
+              {tag}
+              {idx < item.tags.length - 1 && <span className="ml-2">·</span>}
+            </span>
+          ))}
+        </div>
+
+        {/* Year */}
+        <p className="text-gray-600 text-xs font-light">
+          {item.year}
+        </p>
+      </div>
+    </motion.article>
   );
 });
 
 ArchiveCard.displayName = 'ArchiveCard';
 
+// Main Archive Grid Component
 const ArchiveGrid: React.FC = () => {
   return (
-    <div className="w-full min-h-screen pt-40 pb-20 px-10 overflow-y-auto bg-black">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto"
-      >
-        <div className="mb-16">
-          <h2 className="text-4xl font-black italic tracking-tighter text-white uppercase">
-            Experimental Records
-          </h2>
-          <p className="text-gray-500 text-sm mt-2 tracking-widest font-bold">
-            RESEARCH DATA & VISUAL ARCHIVE
+    <div className="w-full min-h-screen bg-black overflow-y-auto">
+      {/* Container with proper padding (Mouthwash style) */}
+      <div className="max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 pt-32 pb-20">
+        {/* Header Section */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: ANIMATION_CONFIG.CARD_EASE }}
+          className="mb-20"
+        >
+          <h1 
+            className="text-white text-5xl sm:text-6xl lg:text-7xl font-light mb-4"
+            style={{
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '-0.02em',
+              lineHeight: '1.1'
+            }}
+          >
+            Archive
+          </h1>
+          <p className="text-gray-500 text-sm font-light tracking-wide">
+            Selected Works & Research
           </p>
-        </div>
+        </motion.header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Grid Layout - 2 columns on desktop, 1 on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16 lg:gap-x-12 lg:gap-y-20">
           {ARCHIVE_ITEMS.map((item, idx) => (
             <ArchiveCard key={item.id} item={item} index={idx} />
           ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
