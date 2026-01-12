@@ -246,24 +246,26 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
               <div className="relative mt-2 flex justify-center h-16">
                 <AnimatePresence>
                   {isTextFinished && !isTranslating && (
-                    <motion.button
+                    <button
                       onMouseEnter={() => setIsHoveringBtn(true)}
                       onMouseLeave={() => setIsHoveringBtn(false)}
                       onClick={(e) => { e.stopPropagation(); onTranslateSystem(); }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="relative text-[48px] font-black tracking-[-0.05em] uppercase transition-all pointer-events-auto cursor-none active:scale-95 z-10"
+                      className="pointer-events-auto cursor-none"
                       style={{ 
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        margin: 0,
-                        outline: 'none',
-                        boxShadow: 'none',
-                        transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
+                        all: 'unset',
+                        cursor: 'none',
+                        display: 'inline-block',
                       }}
                     >
+                      <motion.span
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="relative text-[48px] font-black tracking-[-0.05em] uppercase transition-all active:scale-95 block"
+                        style={{ 
+                          transform: isHoveringBtn ? 'translateY(-4px)' : 'translateY(0)',
+                        }}
+                      >
                       <span 
                         className="relative inline-block"
                         style={{
@@ -309,7 +311,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         />
                         ?????
                       </span>
-                    </motion.button>
+                    </motion.span>
+                    </button>
                   )}
                 </AnimatePresence>
               </div>
