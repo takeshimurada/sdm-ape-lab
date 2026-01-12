@@ -94,6 +94,24 @@ sdm-ape-lab/
 - ✅ Constant values extracted from components
 - ✅ Optimized Three.js rendering with proper frame updates
 
+## 🔐 Admin Page
+
+**Archive 관리자 페이지**를 통해 프로젝트를 쉽게 관리할 수 있습니다:
+
+### 접속 방법:
+1. 웹사이트 어디서나 **`Ctrl + Shift + A`** (Mac: `Cmd + Shift + A`) 누르기
+2. 비밀번호 입력: **`sdmapelab2025`**
+3. 관리자 페이지로 이동
+
+### 기능:
+- ✅ 프로젝트 추가/수정/삭제
+- ✅ 이미지/비디오 업로드
+- ✅ 실시간 미리보기
+- ✅ JSON 기반 저장 (DB 불필요)
+- ✅ 자동 백업
+
+**상세 가이드**: [ADMIN_GUIDE.md](./ADMIN_GUIDE.md)
+
 ## 📝 License
 
 This project is part of SDM APE LAB research initiative.

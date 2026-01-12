@@ -111,11 +111,18 @@ const App: React.FC = () => {
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
 
-    // 🔐 Admin access: Ctrl+Shift+A
+    // 🔐 Admin access: Ctrl+Shift+A with password
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
         e.preventDefault();
-        setCurrentView('ADMIN');
+        const password = prompt('🔐 관리자 비밀번호를 입력하세요:');
+        
+        // 비밀번호: sdmapelab2025
+        if (password === 'sdmapelab2025') {
+          setCurrentView('ADMIN');
+        } else if (password !== null) {
+          alert('❌ 비밀번호가 틀렸습니다.');
+        }
       }
     };
 
@@ -150,26 +157,39 @@ const App: React.FC = () => {
         }}
       >
         <div className="relative flex items-center justify-center">
-          {/* Constant Ambient Pink Glow */}
+          {/* Constant Ambient Pink Glow - Brighter on click */}
           <motion.div 
             animate={{ 
-              scale: isClicked ? 1.5 : 1,
-              opacity: isClicked ? 0.8 : 0.4
+              scale: isClicked ? 2.0 : 1,
+              opacity: isClicked ? 1.0 : 0.4
             }}
             transition={{ duration: 0.1 }}
-            className="absolute w-16 h-16 bg-pink-500/40 rounded-full blur-[20px] z-0" 
+            className="absolute w-20 h-20 bg-pink-500/60 rounded-full blur-[25px] z-0" 
           />
+          
+          {/* Additional bright flash on click */}
+          {isClicked && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 1 }}
+              animate={{ scale: 2.5, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="absolute w-32 h-32 bg-pink-400/80 rounded-full blur-[30px] z-0"
+            />
+          )}
           
           {/* Central Cursor Icon */}
           <svg width="24" height="24" viewBox="0 0 24 24" fill="#ff007f" xmlns="http://www.w3.org/2000/svg" className="relative z-20">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
           
-          {/* Pulsing Light Trail */}
+          {/* Pulsing Light Trail - Brighter on click */}
           <motion.div 
-             animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+             animate={{ 
+               scale: isClicked ? [1.5, 1.8, 1.5] : [1, 1.2, 1], 
+               opacity: isClicked ? [0.3, 0.5, 0.3] : [0.1, 0.2, 0.1]
+             }}
              transition={{ repeat: Infinity, duration: 2 }}
-             className="absolute w-32 h-32 bg-pink-600/10 rounded-full blur-[40px] z-[-1]"
+             className="absolute w-40 h-40 bg-pink-600/20 rounded-full blur-[50px] z-[-1]"
           />
         </div>
       </div>
