@@ -6,7 +6,18 @@
 
 인터랙티브 3D 얼굴 모델과 AI 번역을 결합한 실험적 웹 포트폴리오입니다.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1GyWkrLP-wGkY-J40FknaHnMRwUj6744J
+**Version 1.0.0** | [View Live](https://ai.studio/apps/drive/1GyWkrLP-wGkY-J40FknaHnMRwUj6744J)
+
+## 📌 Version History
+
+### v1.0.0 (Current)
+- ✅ Interactive 3D gorilla model with mouse rotation
+- ✅ Custom heart cursor with glow effects
+- ✅ Multi-language translation (10 languages)
+- ✅ Asphalt-textured ????? button
+- ✅ Scrambled binary text animation
+- ✅ Archive grid page
+- ✅ Dark minimalist theme
 
 ## ✨ Features
 
