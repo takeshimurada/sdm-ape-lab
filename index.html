@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서대문 유인원 연구회 | SDM APE LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #010101;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: white;
+            /* Hide the system cursor globally */
+            cursor: none !important;
+        }
+        canvas {
+            touch-action: none;
+        }
+        ::selection {
+            background: #ff007f;
+            color: white;
+        }
+        /* Ensure all interactive elements don't show the default pointer */
+        a, button, [role="button"] {
+            cursor: none !important;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@^9.5.0",
+    "three": "https://esm.sh/three@^0.182.0",
+    "@react-three/drei": "https://esm.sh/@react-three/drei@^10.7.7",
+    "framer-motion": "https://esm.sh/framer-motion@^12.25.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+  }
+}
+</script>
+</head>
+<body>
+    <!-- Organic Natural Texture Filter -->
+    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true" focusable="false">
+      <filter id="natural-stone">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+        <feDiffuseLighting in="noise" lighting-color="#ffffff" surfaceScale="1.5">
+          <feDistantLight azimuth="45" elevation="55" />
+        </feDiffuseLighting>
+        <feComposite in2="SourceAlpha" operator="in" />
+        <feBlend in="SourceGraphic" mode="multiply" />
+      </filter>
+    </svg>
+    <div id="root"></div>
+</body>
+</html>

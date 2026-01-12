@@ -1,0 +1,295 @@
+
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas } from '@react-three/fiber';
+import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
+import CustomModelLoader from './CustomModelLoader';
+
+interface AboutPageProps {
+  modelUrl: string;
+  showDetails: boolean;
+  text: string;
+  isTranslating: boolean;
+  onTranslateSystem: () => void;
+  onExit: () => void;
+}
+
+const CHARS = '01';
+
+const ScrambledText: React.FC<{ text: string; isDecoding: boolean; onComplete?: () => void }> = ({ text, isDecoding, onComplete }) => {
+  const [displayText, setDisplayText] = useState('');
+
+  useEffect(() => {
+    // 번역 중일 때는 텍스트를 비우고 대기
+    if (isDecoding) {
+      setDisplayText('');
+      return;
+    }
+
+    // 새로운 텍스트 애니메이션 시작 시 초기화
+    let iteration = 0;
+    const maxIterations = text.length;
+    
+    // 이전에 남아있던 텍스트가 있다면 초기화 후 시작
+    setDisplayText('');
+
+    const interval = setInterval(() => {
+      setDisplayText(
+        text
+          .split('')
+          .map((char, index) => {
+            if (char === '\n' || char === ' ') return char;
+            if (index < iteration) return char;
+            return CHARS[Math.floor(Math.random() * CHARS.length)];
+          })
+          .join('')
+      );
+
+      if (iteration >= maxIterations) {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      }
+
+      iteration += 0.8; // 진행 속도 조절
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, [text, isDecoding, onComplete]); // displayText를 의존성에서 제거하여 루프 방지
+
+  const initialBinary = useMemo(() => {
+    return text.split('').map(c => (c === '\n' || c === ' ' ? c : CHARS[Math.floor(Math.random() * 2)])).join('');
+  }, [text]);
+
+  return (
+    <span 
+      style={{ 
+        whiteSpace: 'pre-line',
+        filter: 'url(#natural-stone)', 
+        background: 'linear-gradient(to bottom, #ffffff, #d1d5db 40%, #9ca3af 90%)',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'transparent',
+        display: 'inline-block',
+      }}
+    >
+      {displayText || (isDecoding ? '' : initialBinary)}
+    </span>
+  );
+};
+
+const LoadingDots: React.FC = () => {
+  const [dots, setDots] = useState('.');
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => {
+        if (prev === '....') return '.';
+        return prev + '.';
+      });
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <span className="text-pink-500 italic font-mono brightness-150">HMM{dots}</span>;
+};
+
+const SocialIcon3D: React.FC<{ icon: React.ReactNode; isHovered: boolean }> = ({ icon, isHovered }) => {
+  return (
+    <div 
+      className="relative transition-all duration-500"
+      style={{
+        filter: 'url(#natural-stone)',
+        transform: isHovered ? 'translateY(-2px) scale(1.05)' : 'translateY(0) scale(1)',
+        color: '#444',
+        textShadow: isHovered 
+          ? `0 1px 0 #222, 0 2px 0 #111, 0 4px 8px rgba(0,0,0,0.6)` 
+          : `0 1px 0 #222, 0 2px 0 #111, 0 3px 5px rgba(0,0,0,0.4)`
+      }}
+    >
+      <div style={{ filter: 'drop-shadow(0 1px 0 #000)' }}>
+        {icon}
+      </div>
+    </div>
+  );
+};
+
+const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boolean }> = ({ href, icon, isMail }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <a 
+      href={href} 
+      target={isMail ? undefined : "_blank"}
+      rel={isMail ? undefined : "noopener noreferrer"}
+      onClick={(e) => e.stopPropagation()} 
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative flex items-center justify-center p-6 transition-all duration-500 cursor-none pointer-events-auto"
+    >
+      <SocialIcon3D icon={icon} isHovered={isHovered} />
+    </a>
+  );
+};
+
+const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTranslating, onTranslateSystem, onExit }) => {
+  const [isTextFinished, setIsTextFinished] = useState(false);
+  const [isHoveringBtn, setIsHoveringBtn] = useState(false);
+
+  const formattedText = useMemo(() => {
+    return text.split('.').map(s => s.trim()).filter(s => s.length > 0).join('.\n');
+  }, [text]);
+
+  const handleTextComplete = useCallback(() => {
+    setIsTextFinished(true);
+  }, []);
+
+  useEffect(() => {
+    setIsTextFinished(false);
+  }, [text, isTranslating]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onExit}
+      className="relative w-full h-full flex items-center justify-center bg-[#010101] cursor-none"
+    >
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
+          <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />
+          <ambientLight intensity={0.12} />
+          <pointLight position={[-10, -10, -10]} color="#ff007f" intensity={0.5} />
+          <directionalLight position={[0, 5, -5]} intensity={0.85} color="#ff007f" />
+          <Suspense fallback={null}>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+              <CustomModelLoader url={modelUrl} />
+            </Float>
+            <Environment preset="city" environmentIntensity={0.35} />
+            <ContactShadows opacity={0.4} scale={15} blur={3} far={10} position={[0, -2.5, 0]} color="#000000" />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      <AnimatePresence>
+        {showDetails && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none"
+          >
+            <div className="max-w-4xl px-10 text-center flex flex-col items-center pointer-events-none -mt-12">
+              <motion.div
+                key={formattedText + isTranslating}
+                initial={{ opacity: 0, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                transition={{ duration: 0.5 }}
+                className="space-y-2"
+              >
+                <div className="relative inline-block flex items-center justify-center min-h-[120px]">
+                  <p 
+                    style={{ 
+                      fontFamily: "'Dotum', '돋움', sans-serif",
+                      letterSpacing: '0.04em'
+                    }}
+                    className="text-2xl md:text-4xl leading-[1.6] font-bold"
+                  >
+                    {isTranslating ? (
+                      <LoadingDots />
+                    ) : (
+                      <ScrambledText 
+                        text={formattedText} 
+                        isDecoding={isTranslating} 
+                        onComplete={handleTextComplete} 
+                      />
+                    )}
+                  </p>
+                </div>
+                {!isTranslating && (
+                  <motion.div 
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    className="h-[1px] w-16 bg-gradient-to-r from-transparent via-gray-500 to-transparent mx-auto origin-center opacity-30" 
+                  />
+                )}
+              </motion.div>
+              
+              <div className="relative mt-2 flex justify-center h-16">
+                <AnimatePresence>
+                  {isTextFinished && !isTranslating && (
+                    <motion.button
+                      onMouseEnter={() => setIsHoveringBtn(true)}
+                      onMouseLeave={() => setIsHoveringBtn(false)}
+                      onClick={(e) => { e.stopPropagation(); onTranslateSystem(); }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="relative px-6 py-2 text-[28px] font-black tracking-[-0.15em] uppercase transition-all pointer-events-auto cursor-none active:scale-90 z-10"
+                      style={{ 
+                        filter: 'url(#natural-stone)',
+                        color: '#ff007f',
+                        textShadow: isHoveringBtn 
+                          ? `0 1px 0 #cc0066, 0 2px 0 #aa0055, 0 3px 0 #880044, 0 4px 0 #660033, 0 8px 15px rgba(255,0,127,0.4)`
+                          : `0 1px 0 #99004d, 0 2px 0 #77003c, 0 3px 0 #55002b, 0 5px 8px rgba(0,0,0,0.5)`,
+                        transform: isHoveringBtn ? 'translateY(-3px)' : 'translateY(0)',
+                      }}
+                    >
+                      ?????
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                
+                <AnimatePresence>
+                  {isHoveringBtn && isTextFinished && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1.4 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="absolute inset-0 m-auto w-44 h-16 bg-pink-500/10 blur-[40px] rounded-full pointer-events-none z-0"
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.8 }}
+              className="absolute bottom-16 w-full flex justify-center gap-4 z-20 pointer-events-none"
+            >
+              <SocialLink 
+                href="mailto:kitschkitschyayajjajja@gmail.com" 
+                isMail
+                icon={
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                }
+              />
+
+              <SocialLink 
+                href="https://www.instagram.com/sdm.ape.lab" 
+                icon={
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                  </svg>
+                }
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="absolute bottom-4 left-10 pointer-events-none opacity-[0.02]">
+        <h1 className="text-[25vw] font-black italic tracking-tighter uppercase leading-none text-white">LAB</h1>
+      </div>
+    </motion.div>
+  );
+};
+
+export default AboutPage;
