@@ -23,19 +23,39 @@ const ArchiveGrid: React.FC = () => {
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
     console.log('🔄 Loading archive data...');
-    fetch('/api/archive')
+    console.log('🌐 Fetching from:', '/api/archive');
+    
+    fetch('/api/archive', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // 캐시 사용 안 함
+    })
       .then(res => {
         console.log('📡 Response status:', res.status);
+        console.log('📦 Response type:', res.type);
+        console.log('✅ Response ok:', res.ok);
+        console.log('📝 Response headers:', Array.from(res.headers.entries()));
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         return res.json();
       })
       .then(data => {
         console.log('✅ Archive data loaded:', data);
         console.log('📊 Number of items:', data.length);
+        console.log('🔍 First item:', data[0]);
         setItems(data);
         setLoading(false);
       })
       .catch(err => {
         console.error('❌ Failed to load archive data:', err);
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Error stack:', err.stack);
         setLoading(false);
       });
   }, []);
