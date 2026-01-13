@@ -4,5 +4,11 @@
     "name": "SDM APE LAB",
     "message": "방명록에 오신 것을 환영합니다. 자유롭게 메시지를 남겨주세요.",
     "date": "2026.01.13"
+  },
+  {
+    "id": 2,
+    "name": "Test User",
+    "message": "This is a test message from Earth!",
+    "date": "2026.01.13"
   }
 ]

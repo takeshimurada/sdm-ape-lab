@@ -15,6 +15,40 @@ const GuestBook: React.FC = () => {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Get user's language
+  const getUserLanguage = () => {
+    if (typeof window === 'undefined') return 'en';
+    return navigator.language.toLowerCase();
+  };
+
+  // Multi-language instructions
+  const getInstructions = () => {
+    const lang = getUserLanguage();
+    
+    if (lang.startsWith('ko')) {
+      return '외계인을 만나면 전달할 메시지입니다. 신중히 당신을 나타내는 이름을 쓰고, 신중히 메시지를 남기시오.';
+    } else if (lang.startsWith('ja')) {
+      return '宇宙人に会ったら伝えるメッセージです。慎重に自分を表す名前を書き、慎重にメッセージを残してください。';
+    } else if (lang.startsWith('zh')) {
+      return '这是遇见外星人时要传达的信息。请慎重地写下代表你的名字，并慎重地留下信息。';
+    } else if (lang.startsWith('es')) {
+      return 'Este es un mensaje para entregar cuando encuentres a un extraterrestre. Escribe cuidadosamente un nombre que te represente y deja un mensaje con cuidado.';
+    } else if (lang.startsWith('fr')) {
+      return 'Ceci est un message à transmettre lorsque vous rencontrez un extraterrestre. Écrivez soigneusement un nom qui vous représente et laissez un message avec soin.';
+    } else if (lang.startsWith('de')) {
+      return 'Dies ist eine Nachricht, die Sie übermitteln können, wenn Sie einem Außerirdischen begegnen. Schreiben Sie sorgfältig einen Namen, der Sie repräsentiert, und hinterlassen Sie eine Nachricht mit Bedacht.';
+    } else if (lang.startsWith('ru')) {
+      return 'Это сообщение для передачи при встрече с инопланетянином. Тщательно напишите имя, которое вас представляет, и оставьте сообщение с осторожностью.';
+    } else if (lang.startsWith('it')) {
+      return 'Questo è un messaggio da consegnare quando incontri un alieno. Scrivi attentamente un nome che ti rappresenta e lascia un messaggio con cura.';
+    } else if (lang.startsWith('pt')) {
+      return 'Esta é uma mensagem para entregar quando você encontrar um alienígena. Escreva cuidadosamente um nome que o represente e deixe uma mensagem com cuidado.';
+    } else {
+      // Default: English
+      return 'This is a message to deliver when you meet an alien. Carefully write a name that represents you and leave a message thoughtfully.';
+    }
+  };
+
   // Detect environment and construct backend URL
   const getBackendUrl = () => {
     if (typeof window === 'undefined') return '';
@@ -121,10 +155,22 @@ const GuestBook: React.FC = () => {
   return (
     <div className="fixed inset-0 bg-black overflow-y-auto">
       <div className="min-h-screen pt-24 pb-12 px-6">
+        {/* Instructions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-2xl mx-auto mb-8"
+        >
+          <p className="text-white/40 text-xs leading-relaxed text-center italic">
+            {getInstructions()}
+          </p>
+        </motion.div>
+
         {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="max-w-2xl mx-auto mb-16"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
