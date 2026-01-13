@@ -46,12 +46,23 @@
    - API 키는 [Google AI Studio](https://aistudio.google.com/app/apikey)에서 발급받을 수 있습니다
 
 3. **Run the development server:**
+   
+   **🌟 Full Stack Mode (권장):**
+   ```bash
+   # 백엔드 + 프론트엔드 동시 실행
+   npm run dev:full
+   
+   # 또는
+   ./start-dev.sh
+   ```
+   
+   **📱 Frontend Only Mode:**
    ```bash
    npm run dev
    ```
 
 4. **Open your browser:**
-   - 브라우저에서 `http://localhost:3000` 접속
+   - 브라우저에서 `http://localhost:3000` 접속 (또는 표시된 포트)
 
 ## 🏗️ Build for Production
 
@@ -63,6 +74,8 @@ npm run preview
 ## 📦 Tech Stack
 
 - **Frontend Framework**: React 19.2.3
+- **Backend**: Express.js (Node.js)
+- **File Upload**: Multer
 - **Build Tool**: Vite 6.2.0
 - **3D Graphics**: Three.js 0.182.0, React Three Fiber 9.5.0
 - **Animation**: Framer Motion 12.25.0
@@ -96,21 +109,30 @@ sdm-ape-lab/
 
 ## 🔐 Admin Page
 
-**Archive 관리자 페이지**를 통해 프로젝트를 쉽게 관리할 수 있습니다:
+**🌟 실시간 Archive 관리 시스템**
+
+이제 관리자 페이지에서 프로젝트를 추가/수정하면 **JSON 파일을 수동으로 업로드할 필요 없이 즉시 반영**됩니다!
 
 ### 접속 방법:
 1. 웹사이트 어디서나 **`Ctrl + Shift + A`** (Mac: `Cmd + Shift + A`) 누르기
 2. 비밀번호 입력: **`sdmapelab2025`**
 3. 관리자 페이지로 이동
 
-### 기능:
-- ✅ 프로젝트 추가/수정/삭제
-- ✅ 이미지/비디오 업로드
-- ✅ 실시간 미리보기
-- ✅ JSON 기반 저장 (DB 불필요)
-- ✅ 자동 백업
+### 🎯 주요 기능:
+- ✅ **즉시 반영**: 저장 버튼 클릭 시 바로 Archive 탭에 표시
+- ✅ **파일 업로드**: 이미지/비디오를 직접 업로드 (최대 50MB)
+- ✅ **외부 URL 지원**: Unsplash, Imgur 등의 URL 사용 가능
+- ✅ **실시간 미리보기**: 수정 내용을 즉시 확인
+- ✅ **자동 저장**: 서버에 자동으로 저장됨
+- ✅ **No Database**: JSON 파일 기반 (간단하고 빠름)
 
-**상세 가이드**: [ADMIN_GUIDE.md](./ADMIN_GUIDE.md)
+### 📁 지원 파일 형식:
+- **이미지**: JPEG, PNG, GIF, WebP
+- **비디오**: MP4, WebM, QuickTime
+
+### 📖 상세 가이드:
+- [실시간 업데이트 가이드](./REALTIME_ADMIN_GUIDE.md) ⭐ **NEW!**
+- [기본 관리자 가이드](./ADMIN_GUIDE.md)
 
 ## 📝 License
 
