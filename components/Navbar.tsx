@@ -116,7 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
             currentView === 'GUESTBOOK' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
           }`}
         >
-          GUESTBOOK
+          SAY HI TO ALIEN
         </button>
       </div>
     </motion.nav>
