@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Backend Direct Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: black; 
+      color: white; 
+      font-family: system-ui; 
+      padding: 40px;
+    }
+    .item {
+      padding: 12px;
+      margin: 4px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .title {
+      font-size: 16px;
+      color: rgba(255,255,255,0.8);
+    }
+    .year {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      margin-left: 12px;
+    }
+    #console {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      background: rgba(0,0,0,0.9);
+      color: #0f0;
+      padding: 20px;
+      font-family: monospace;
+      font-size: 11px;
+      width: 500px;
+      height: 400px;
+      overflow-y: auto;
+      border-left: 1px solid #333;
+      border-top: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 40px; font-size: 14px; color: rgba(255,255,255,0.6);">선택된 작품들</h1>
+  <div id="archive-list"></div>
+  <div id="console"></div>
+
+  <script>
+    const log = (msg) => {
+      const console = document.getElementById('console');
+      console.innerHTML += msg + '<br>';
+      console.scrollTop = console.scrollHeight;
+    };
+
+    log('🔄 Starting backend direct test...');
+    
+    // 백엔드 URL 결정
+    const isLocalhost = window.location.hostname === 'localhost';
+    const backendUrl = isLocalhost 
+      ? 'http://localhost:3001'
+      : window.location.origin.replace('3000-', '3001-'); // HTTPS 유지
+    
+    const apiUrl = `${backendUrl}/api/archive`;
+    
+    log('🌐 Backend URL: ' + backendUrl);
+    log('🎯 API URL: ' + apiUrl);
+    log('📍 Current origin: ' + window.location.origin);
+    log('📡 Fetching...');
+    
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    })
+      .then(res => {
+        log('📡 Response status: ' + res.status);
+        log('📦 Response type: ' + res.type);
+        log('✅ Response ok: ' + res.ok);
+        
+        if (!res.ok) {
+          throw new Error('HTTP error! status: ' + res.status);
+        }
+        
+        return res.json();
+      })
+      .then(data => {
+        log('📊 Data received: ' + data.length + ' items');
+        log('📝 First item: ' + JSON.stringify(data[0]));
+        
+        const list = document.getElementById('archive-list');
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <span class="title">${item.title}</span>
+            <span class="year">${item.year}</span>
+          `;
+          list.appendChild(div);
+        });
+        
+        log('✅ Rendered ' + data.length + ' items');
+      })
+      .catch(err => {
+        log('❌ ERROR: ' + err.message);
+        log('Stack: ' + err.stack);
+      });
+  </script>
+</body>
+</html>

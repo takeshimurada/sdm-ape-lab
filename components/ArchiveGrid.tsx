@@ -24,11 +24,11 @@ const ArchiveGrid: React.FC = () => {
   React.useEffect(() => {
     console.log('🔄 Loading archive data...');
     
-    // 백엔드 서버 URL 결정
+    // 백엔드 서버 URL 결정 (HTTPS 사용)
     const isLocalhost = window.location.hostname === 'localhost';
     const backendUrl = isLocalhost 
       ? 'http://localhost:3001'
-      : window.location.origin.replace(/:\d+/, ':3001').replace('3000-', '3001-');
+      : window.location.origin.replace('3000-', '3001-'); // HTTPS 유지
     
     const apiUrl = `${backendUrl}/api/archive`;
     console.log('🌐 Fetching from:', apiUrl);
