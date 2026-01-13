@@ -35,13 +35,19 @@ const getYouTubeThumbnail = (url: string): string => {
 
 // 백엔드 URL 헬퍼 함수
 const getBackendUrl = () => {
-  const isLocalhost = window.location.hostname === 'localhost';
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost';
+  const isSandbox = hostname.includes('sandbox.novita.ai');
+  
   if (isLocalhost) {
     return 'http://localhost:3001';
+  } else if (isSandbox) {
+    // Sandbox 환경: HTTPS 유지하면서 포트를 3001로 변경
+    return window.location.origin.replace(/\d{4}-/, '3001-');
+  } else {
+    // Cloudflare Pages: 백엔드 없음 (에러 표시)
+    return null;
   }
-  // Sandbox 환경: HTTPS 유지하면서 포트를 3001로 변경
-  // https://3002-xxx.sandbox.novita.ai -> https://3001-xxx.sandbox.novita.ai
-  return window.location.origin.replace(/\d{4}-/, '3001-');
 };
 
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
@@ -60,6 +66,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const loadData = async () => {
     try {
       const backendUrl = getBackendUrl();
+      
+      if (!backendUrl) {
+        setMessage('❌ 이 환경에서는 관리자 기능을 사용할 수 없습니다. Sandbox 환경을 사용해주세요.');
+        return;
+      }
+      
       const res = await fetch(`${backendUrl}/api/archive`);
       const data = await res.json();
       setItems(data);

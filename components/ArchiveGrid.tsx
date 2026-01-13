@@ -24,15 +24,32 @@ const ArchiveGrid: React.FC = () => {
   React.useEffect(() => {
     console.log('🔄 Loading archive data...');
     
-    // 백엔드 서버 URL 결정 (HTTPS 사용)
-    const isLocalhost = window.location.hostname === 'localhost';
-    const backendUrl = isLocalhost 
-      ? 'http://localhost:3001'
-      : window.location.origin.replace(/\d{4}-/, '3001-'); // 모든 포트를 3001로 변경
+    // 백엔드 서버 URL 결정
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost';
+    const isSandbox = hostname.includes('sandbox.novita.ai');
+    const isCloudflare = hostname.includes('pages.dev');
     
-    const apiUrl = `${backendUrl}/api/archive`;
+    let apiUrl: string;
+    
+    if (isLocalhost) {
+      // 로컬 개발: 백엔드 서버 직접 연결
+      apiUrl = 'http://localhost:3001/api/archive';
+    } else if (isSandbox) {
+      // Sandbox: HTTPS 백엔드
+      const backendUrl = window.location.origin.replace(/\d{4}-/, '3001-');
+      apiUrl = `${backendUrl}/api/archive`;
+    } else if (isCloudflare) {
+      // Cloudflare Pages: 정적 JSON 파일 사용
+      apiUrl = '/archive-data.json';
+    } else {
+      // 기타: 정적 JSON 파일 사용
+      apiUrl = '/archive-data.json';
+    }
+    
     console.log('🌐 Fetching from:', apiUrl);
     console.log('📍 Current origin:', window.location.origin);
+    console.log('🏷️ Environment:', { isLocalhost, isSandbox, isCloudflare });
     
     fetch(apiUrl, {
       method: 'GET',
