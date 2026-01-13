@@ -3,43 +3,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 interface NavbarProps {
-  currentView: 'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN';
-  setView: (view: 'ABOUT' | 'ARCHIVE') => void;
+  currentView: 'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN' | 'GUESTBOOK';
+  setView: (view: 'ABOUT' | 'ARCHIVE' | 'GUESTBOOK') => void;
   onLogoClick?: () => void;
-  onAdminAccess?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick, onAdminAccess }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) => {
   const [isLogoHovered, setIsLogoHovered] = useState(false);
-  const [logoClickCount, setLogoClickCount] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-
-  // Secret admin access: triple-click logo within 1 second
-  const handleLogoClick = () => {
-    const now = Date.now();
-    const timeDiff = now - lastClickTime;
-
-    if (timeDiff < 1000) {
-      const newCount = logoClickCount + 1;
-      setLogoClickCount(newCount);
-      
-      // Triple click detected
-      if (newCount >= 3 && onAdminAccess) {
-        onAdminAccess();
-        setLogoClickCount(0);
-        return;
-      }
-    } else {
-      setLogoClickCount(1);
-    }
-
-    setLastClickTime(now);
-    
-    // Normal logo click
-    if (onLogoClick) {
-      onLogoClick();
-    }
-  };
 
   return (
     <motion.nav 
@@ -50,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick, onAd
     >
       <div 
         className="relative flex flex-col gap-0.5 group cursor-none pointer-events-auto"
-        onClick={handleLogoClick}
+        onClick={onLogoClick}
         onMouseEnter={() => setIsLogoHovered(true)}
         onMouseLeave={() => setIsLogoHovered(false)}
       >
@@ -139,6 +109,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick, onAd
           }`}
         >
           ARCHIVE
+        </button>
+        <button 
+          onClick={() => setView('GUESTBOOK')}
+          className={`text-[11px] tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
+            currentView === 'GUESTBOOK' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
+          }`}
+        >
+          GUESTBOOK
         </button>
       </div>
     </motion.nav>

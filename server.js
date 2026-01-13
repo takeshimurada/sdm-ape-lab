@@ -65,6 +65,9 @@ const upload = multer({
 // Archive 데이터 파일 경로
 const ARCHIVE_DATA_PATH = join(__dirname, 'public', 'archive-data.json');
 
+// Guestbook 데이터 파일 경로
+const GUESTBOOK_DATA_PATH = join(__dirname, 'public', 'guestbook-data.json');
+
 // 📖 Archive 데이터 읽기
 app.get('/api/archive', async (req, res) => {
   try {
@@ -158,12 +161,81 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// 📖 Guestbook 데이터 읽기
+app.get('/api/guestbook', async (req, res) => {
+  try {
+    const data = await fs.readFile(GUESTBOOK_DATA_PATH, 'utf-8');
+    const entries = JSON.parse(data);
+    // 최신순으로 정렬
+    res.json(entries.sort((a, b) => b.id - a.id));
+  } catch (error) {
+    // 파일이 없으면 빈 배열 반환
+    console.log('Guestbook data not found, returning empty array');
+    res.json([]);
+  }
+});
+
+// 📝 Guestbook 엔트리 추가
+app.post('/api/guestbook', async (req, res) => {
+  try {
+    const { name, message } = req.body;
+    
+    // 데이터 검증
+    if (!name || !message) {
+      return res.status(400).json({ error: '이름과 메시지가 필요합니다.' });
+    }
+    
+    if (name.length > 50 || message.length > 500) {
+      return res.status(400).json({ error: '입력 제한을 초과했습니다.' });
+    }
+    
+    // 기존 데이터 읽기
+    let entries = [];
+    try {
+      const data = await fs.readFile(GUESTBOOK_DATA_PATH, 'utf-8');
+      entries = JSON.parse(data);
+    } catch (error) {
+      // 파일이 없으면 빈 배열로 시작
+      console.log('Creating new guestbook data file');
+    }
+    
+    // 새 엔트리 생성
+    const newEntry = {
+      id: entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1,
+      name: name.trim(),
+      message: message.trim(),
+      date: new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\. /g, '.').replace(/\.$/, '')
+    };
+    
+    // 배열에 추가
+    entries.push(newEntry);
+    
+    // JSON 파일로 저장
+    await fs.writeFile(
+      GUESTBOOK_DATA_PATH,
+      JSON.stringify(entries, null, 2),
+      'utf-8'
+    );
+    
+    console.log('✅ Guestbook entry added:', newEntry);
+    res.json({ success: true, entry: newEntry });
+  } catch (error) {
+    console.error('❌ Guestbook error:', error);
+    res.status(500).json({ error: '저장 중 오류가 발생했습니다.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗
 ║  🚀 SDM APE LAB - Admin Backend Server          ║
 ║  📡 Running on: http://localhost:${PORT}         ║
 ║  📁 Archive API: /api/archive                    ║
+║  📖 Guestbook API: /api/guestbook                ║
 ║  📤 Upload API: /api/upload                      ║
 ║  🗑️  Delete API: /api/upload/:filename           ║
 ╚══════════════════════════════════════════════════╝

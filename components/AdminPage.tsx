@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Archive item type - 블로그 스타일
 interface ArchiveItem {
   id: number;
-  type: 'image' | 'video' | 'youtube' | 'text';
+  type: 'image' | 'video' | 'youtube' | 'text' | 'website';
   url: string;
   media?: Array<{
     type: 'image' | 'video' | 'youtube';
@@ -364,11 +364,19 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       />
                       📺 YouTube
                     </label>
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={editingItem.type === 'website'}
+                        onChange={() => setEditingItem({ ...editingItem, type: 'website' })}
+                      />
+                      🌐 웹사이트
+                    </label>
                   </div>
                 </div>
 
                 {/* File Upload - Only for image/video */}
-                {editingItem.type !== 'youtube' && (
+                {editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
                   <div className="mb-4">
                     <label 
                       className="block text-gray-400 text-sm mb-2"
@@ -408,18 +416,31 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                   >
                     {editingItem.type === 'youtube' 
                       ? 'YouTube URL (필수)' 
+                      : editingItem.type === 'website'
+                      ? '웹사이트 URL (필수)'
                       : '또는 URL 직접 입력'}
                   </label>
                   <input
                     type="text"
                     value={editingItem.url}
                     onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
-                    placeholder={editingItem.type === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/image.jpg'}
+                    placeholder={
+                      editingItem.type === 'youtube' 
+                        ? 'https://www.youtube.com/watch?v=...' 
+                        : editingItem.type === 'website'
+                        ? 'https://earth.google.com/web/'
+                        : 'https://example.com/image.jpg'
+                    }
                     className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
                   />
                   {editingItem.type === 'youtube' && (
                     <p className="text-xs text-gray-500 mt-1">
                       💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID
+                    </p>
+                  )}
+                  {editingItem.type === 'website' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 클릭 시 새 탭에서 열립니다.
                     </p>
                   )}
                 </div>

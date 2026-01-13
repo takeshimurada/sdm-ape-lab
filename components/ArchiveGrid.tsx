@@ -5,8 +5,8 @@ import ArchiveDetailPage from './ArchiveDetailPage';
 // Archive item type definition - 블로그 스타일
 export interface ArchiveItem {
   id: number;
-  type: 'image' | 'video' | 'youtube' | 'text'; // text 타입 추가
-  url: string; // 메인 URL (하위 호환성)
+  type: 'image' | 'video' | 'youtube' | 'text' | 'website'; // website 타입 추가
+  url: string; // 메인 URL (website 타입인 경우 외부 링크)
   media?: Array<{ // 여러 미디어 지원
     type: 'image' | 'video' | 'youtube';
     url: string;
@@ -98,7 +98,19 @@ const ArchiveGrid: React.FC = () => {
       case 'video': return '𓁹';
       case 'image': return '𓉔';
       case 'text': return '𓀔'; // 텍스트 아이콘
+      case 'website': return '𓀁'; // 웹사이트 아이콘 (인터넷/링크)
       default: return '𓊖';
+    }
+  };
+
+  // 아이템 클릭 핸들러
+  const handleItemClick = (item: ArchiveItem) => {
+    if (item.type === 'website') {
+      // website 타입은 새 탭에서 열기
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    } else {
+      // 다른 타입은 상세 페이지 열기
+      setSelectedItem(item);
     }
   };
 
@@ -148,7 +160,7 @@ const ArchiveGrid: React.FC = () => {
                 transition={{ delay: index * 0.02 }}
                 onMouseEnter={() => setHoveredId(item.id)}
                 onMouseLeave={() => setHoveredId(null)}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => handleItemClick(item)}
                 className="group cursor-pointer py-3 px-2 border-b border-white/5 hover:bg-white/3 transition-all"
               >
                 <div className="flex items-baseline gap-3">

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import AboutPage from './components/AboutPage';
 import ArchiveGrid from './components/ArchiveGrid';
 import AdminPage from './components/AdminPage';
+import GuestBook from './components/GuestBook';
 
 // Constants
 const BASE_PROMPT = "안녕하세요. 정말 반갑습니다. 인간 - 자연을 연구합니다.";
@@ -28,7 +29,7 @@ const TRANSLATIONS: Record<string, string> = {
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
-  const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN'>('HOME');
+  const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN' | 'GUESTBOOK'>('HOME');
   const [aboutText, setAboutText] = useState('01010101 01010101 01010101'); // Start with binary placeholder
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -71,7 +72,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE') => {
+  const handleSetView = useCallback((view: 'ABOUT' | 'ARCHIVE' | 'GUESTBOOK') => {
     if (view === 'ABOUT') {
       // Always translate when opening About page
       console.log('About tab clicked - starting translation');
@@ -231,7 +232,7 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <Navbar currentView={currentView} setView={handleSetView} onLogoClick={handleGoHome} onAdminAccess={promptAdminPassword} />
+      <Navbar currentView={currentView} setView={handleSetView} onLogoClick={handleGoHome} />
 
       <main className="relative w-full h-full">
         <AnimatePresence mode="wait">
@@ -242,6 +243,10 @@ const App: React.FC = () => {
           ) : currentView === 'ARCHIVE' ? (
             <motion.div key="archive" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="fixed inset-0 z-10 overflow-y-auto">
               <ArchiveGrid />
+            </motion.div>
+          ) : currentView === 'GUESTBOOK' ? (
+            <motion.div key="guestbook" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <GuestBook />
             </motion.div>
           ) : (
             <AboutPage 
