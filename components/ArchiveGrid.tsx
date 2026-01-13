@@ -22,14 +22,20 @@ const ArchiveGrid: React.FC = () => {
 
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
+    console.log('🔄 Loading archive data...');
     fetch('/api/archive')
-      .then(res => res.json())
+      .then(res => {
+        console.log('📡 Response status:', res.status);
+        return res.json();
+      })
       .then(data => {
+        console.log('✅ Archive data loaded:', data);
+        console.log('📊 Number of items:', data.length);
         setItems(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load archive data:', err);
+        console.error('❌ Failed to load archive data:', err);
         setLoading(false);
       });
   }, []);
@@ -48,6 +54,36 @@ const ArchiveGrid: React.FC = () => {
     return (
       <div className="w-full min-h-screen bg-black flex items-center justify-center">
         <p className="text-gray-500 font-mono text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="w-full min-h-screen bg-black text-white">
+        <div className="max-w-3xl mx-auto px-6 md:px-12 pt-32 pb-20">
+          <h1 
+            className="text-sm md:text-base mb-2"
+            style={{ 
+              fontFamily: 'Dotum, "돋움", sans-serif',
+              letterSpacing: '0.05em'
+            }}
+          >
+            선택된 작품들
+          </h1>
+          <p className="text-xs text-gray-500 font-mono mb-8">
+            selected work
+          </p>
+          <p 
+            className="text-gray-600 text-sm"
+            style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+          >
+            아직 프로젝트가 없습니다. 관리자 페이지에서 추가해주세요.
+          </p>
+          <p className="text-xs text-gray-700 mt-2 font-mono">
+            Press Ctrl+Shift+A to access admin page
+          </p>
+        </div>
       </div>
     );
   }
