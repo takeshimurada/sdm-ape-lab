@@ -23,9 +23,17 @@ const ArchiveGrid: React.FC = () => {
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
     console.log('🔄 Loading archive data...');
-    console.log('🌐 Fetching from:', '/api/archive');
     
-    fetch('/api/archive', {
+    // 백엔드 서버 URL 결정
+    const isLocalhost = window.location.hostname === 'localhost';
+    const backendUrl = isLocalhost 
+      ? 'http://localhost:3001'
+      : window.location.origin.replace(/:\d+/, ':3001').replace('3000-', '3001-');
+    
+    const apiUrl = `${backendUrl}/api/archive`;
+    console.log('🌐 Fetching from:', apiUrl);
+    
+    fetch(apiUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',

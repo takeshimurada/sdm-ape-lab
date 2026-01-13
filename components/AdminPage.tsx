@@ -33,6 +33,16 @@ const getYouTubeThumbnail = (url: string): string => {
     : url;
 };
 
+// 백엔드 URL 헬퍼 함수
+const getBackendUrl = () => {
+  const isLocalhost = window.location.hostname === 'localhost';
+  if (isLocalhost) {
+    return 'http://localhost:3001';
+  }
+  // Sandbox 환경: 3000-xxx.sandbox.novita.ai -> 3001-xxx.sandbox.novita.ai
+  return window.location.origin.replace(/:\d+/, ':3001').replace('3000-', '3001-');
+};
+
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [items, setItems] = useState<ArchiveItem[]>([]);
   const [editingItem, setEditingItem] = useState<ArchiveItem | null>(null);
@@ -48,7 +58,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   const loadData = async () => {
     try {
-      const res = await fetch('/api/archive');
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/archive`);
       const data = await res.json();
       setItems(data);
     } catch (err) {
@@ -61,7 +72,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const saveData = async (data: ArchiveItem[]) => {
     setSaving(true);
     try {
-      const res = await fetch('/api/archive', {
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/archive`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -95,7 +107,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
         body: formData
       });
