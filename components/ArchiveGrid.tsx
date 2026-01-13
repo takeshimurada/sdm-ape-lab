@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ArchiveDetailPage from './ArchiveDetailPage';
 
-// Archive item type definition
+// Archive item type definition - 블로그 스타일
 export interface ArchiveItem {
   id: number;
-  type: 'image' | 'video' | 'youtube';
-  url: string;
+  type: 'image' | 'video' | 'youtube' | 'text'; // text 타입 추가
+  url: string; // 메인 URL (하위 호환성)
+  media?: Array<{ // 여러 미디어 지원
+    type: 'image' | 'video' | 'youtube';
+    url: string;
+  }>;
   title: string;
   tags: string[];
   year: string;
-  description?: string;
+  description?: string; // 블로그 본문
+  content?: string; // 추가 콘텐츠 (긴 글)
 }
 
 // Jon Rafman style Archive Grid - Text-based minimal list
@@ -92,6 +97,7 @@ const ArchiveGrid: React.FC = () => {
       case 'youtube': return '𓆛';
       case 'video': return '𓁹';
       case 'image': return '𓉔';
+      case 'text': return '𓀔'; // 텍스트 아이콘
       default: return '𓊖';
     }
   };

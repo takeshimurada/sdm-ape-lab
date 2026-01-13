@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Archive item type
+// Archive item type - 블로그 스타일
 interface ArchiveItem {
   id: number;
-  type: 'image' | 'video' | 'youtube';
+  type: 'image' | 'video' | 'youtube' | 'text';
   url: string;
+  media?: Array<{
+    type: 'image' | 'video' | 'youtube';
+    url: string;
+  }>;
   title: string;
   tags: string[];
   year: string;
   description?: string;
+  content?: string;
 }
 
 // YouTube URL에서 비디오 ID 추출
@@ -152,12 +157,14 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const handleAdd = () => {
     const newItem: ArchiveItem = {
       id: Math.max(...items.map(i => i.id), 0) + 1,
-      type: 'image',
+      type: 'text', // 기본값을 text로
       url: '',
+      media: [], // 빈 미디어 배열
       title: '새 프로젝트',
       tags: [],
       year: new Date().getFullYear().toString(),
-      description: ''
+      description: '',
+      content: ''
     };
     setEditingItem(newItem);
     setIsAdding(true);
