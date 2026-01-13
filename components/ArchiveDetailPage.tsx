@@ -126,28 +126,13 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
 
         {/* 블로그 콘텐츠 */}
         <article className="max-w-3xl mx-auto">
-          {/* 헤더 */}
+          {/* 헤더 - 타이틀 크기 줄임 */}
           <header className="mb-12">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-2xl md:text-4xl text-white mb-4"
-              style={{ 
-                fontFamily: /[\u3131-\uD79D]/.test(item.title) 
-                  ? 'Dotum, "돋움", sans-serif' 
-                  : 'system-ui, -apple-system, sans-serif',
-                lineHeight: '1.4'
-              }}
-            >
-              {item.title}
-            </motion.h1>
-
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center gap-4 text-sm text-gray-500"
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-4 text-sm text-gray-500 mb-6"
             >
               <span className="font-mono">{item.year}</span>
               {item.tags && item.tags.length > 0 && (
@@ -248,7 +233,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               onClick={onClose}
               className="text-white/40 hover:text-white/80 transition-colors text-sm font-mono"
             >
-              ← 돌아가기
+              ← back
             </button>
           </motion.div>
         </article>
