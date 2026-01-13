@@ -106,28 +106,16 @@ const ArchiveGrid: React.FC = () => {
 
   if (items.length === 0) {
     return (
-      <div className="w-full min-h-screen bg-black text-white">
-        <div className="max-w-3xl mx-auto px-6 md:px-12 pt-32 pb-20">
-          <h1 
-            className="text-sm md:text-base mb-2"
-            style={{ 
-              fontFamily: 'Dotum, "돋움", sans-serif',
-              letterSpacing: '0.05em'
-            }}
-          >
-            선택된 작품들
-          </h1>
-          <p className="text-xs text-gray-500 font-mono mb-8">
-            selected work
-          </p>
+      <div className="w-full min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
           <p 
             className="text-gray-600 text-sm"
             style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
           >
-            아직 프로젝트가 없습니다. 관리자 페이지에서 추가해주세요.
+            아직 프로젝트가 없습니다.
           </p>
           <p className="text-xs text-gray-700 mt-2 font-mono">
-            Press Ctrl+Shift+A to access admin page
+            Press Ctrl+Shift+A
           </p>
         </div>
       </div>
@@ -137,57 +125,36 @@ const ArchiveGrid: React.FC = () => {
   return (
     <>
       <div className="w-full min-h-screen bg-black text-white">
-        {/* Container */}
-        <div className="max-w-3xl mx-auto px-6 md:px-12 pt-32 pb-20">
-          {/* Header */}
+        {/* Container - 더 넓고 여백 없이 */}
+        <div className="w-full px-4 md:px-8 pt-24 pb-12">
+          {/* Archive List - 헤더 제거, 바로 시작 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12"
-          >
-            <h1 
-              className="text-sm md:text-base mb-2"
-              style={{ 
-                fontFamily: 'Dotum, "돋움", sans-serif',
-                letterSpacing: '0.05em'
-              }}
-            >
-              선택된 작품들
-            </h1>
-            <p className="text-xs text-gray-500 font-mono">
-              selected work
-            </p>
-          </motion.div>
-
-          {/* Archive List */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="space-y-1"
+            transition={{ duration: 0.3 }}
+            className="space-y-0"
           >
             {items.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.03 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: index * 0.02 }}
                 onMouseEnter={() => setHoveredId(item.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 onClick={() => setSelectedItem(item)}
-                className="group cursor-pointer py-2 px-3 -mx-3 rounded transition-colors hover:bg-white/5"
+                className="group cursor-pointer py-3 px-2 border-b border-white/5 hover:bg-white/3 transition-all"
               >
                 <div className="flex items-baseline gap-3">
                   {/* Icon */}
-                  <span className="text-white/60 group-hover:text-white transition-colors flex-shrink-0">
+                  <span className="text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0 text-sm">
                     {getIcon(item.type)}
                   </span>
                   
                   {/* Title */}
                   <span 
-                    className={`text-sm md:text-base transition-all duration-200 ${
-                      hoveredId === item.id ? 'text-white underline' : 'text-white/80'
+                    className={`text-sm md:text-base transition-all duration-150 ${
+                      hoveredId === item.id ? 'text-white' : 'text-white/70'
                     }`}
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(item.title) 
@@ -224,18 +191,6 @@ const ArchiveGrid: React.FC = () => {
                 )}
               </motion.div>
             ))}
-          </motion.div>
-
-          {/* Footer */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="mt-20 pt-6 border-t border-white/10"
-          >
-            <p className="text-xs text-gray-600 font-mono">
-              SDM APE LAB © {new Date().getFullYear()}
-            </p>
           </motion.div>
         </div>
       </div>
