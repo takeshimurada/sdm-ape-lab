@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import ArchiveDetailPage from './ArchiveDetailPage';
 
 // Archive item type definition
-interface ArchiveItem {
+export interface ArchiveItem {
   id: number;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'youtube';
   url: string;
   title: string;
   tags: string[];
   year: string;
+  description?: string;
 }
 
 // Constants - RAW/Brutalist Style
@@ -18,8 +20,30 @@ const ANIMATION_CONFIG = {
   GLITCH_DURATION: 0.15,
 } as const;
 
+// YouTube URL에서 비디오 ID 추출
+const getYouTubeVideoId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) return match[1];
+  }
+  
+  return null;
+};
+
+// YouTube 썸네일 URL 생성
+const getYouTubeThumbnail = (url: string): string => {
+  const videoId = getYouTubeVideoId(url);
+  return videoId 
+    ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+    : url;
+};
+
 // Raw/Brutalist Archive Card with variable sizes
-const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo(({ item, index }) => {
+const ArchiveCard: React.FC<{ item: ArchiveItem; index: number; onClick: () => void }> = React.memo(({ item, index, onClick }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   // 불규칙한 크기 패턴 (but 규칙적)
@@ -44,11 +68,23 @@ const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo((
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`group relative cursor-none border-2 border-white/10 ${sizeClass}`}
+      onClick={onClick}
+      className={`group relative cursor-pointer border-2 border-white/10 hover:border-white/30 transition-colors ${sizeClass}`}
     >
       {/* Media Container - Full bleed */}
       <div className="absolute inset-0 overflow-hidden bg-black">
-        {item.type === 'video' ? (
+        {item.type === 'youtube' ? (
+          <img 
+            src={getYouTubeThumbnail(item.url)} 
+            alt={item.title} 
+            loading="lazy"
+            className="w-full h-full object-cover"
+            style={{
+              filter: isHovered ? 'grayscale(0) contrast(1.1)' : 'grayscale(0.3) contrast(0.9)',
+              transition: 'filter 0.2s ease-out'
+            }}
+          />
+        ) : item.type === 'video' ? (
           <video 
             src={item.url} 
             autoPlay 
@@ -107,7 +143,7 @@ const ArchiveCard: React.FC<{ item: ArchiveItem; index: number }> = React.memo((
             [{String(item.id).padStart(3, '0')}]
           </span>
           <span className="text-white font-mono text-xs opacity-50">
-            {item.type === 'video' ? 'VID' : 'IMG'}
+            {item.type === 'youtube' ? 'YT' : item.type === 'video' ? 'VID' : 'IMG'}
           </span>
         </div>
 
@@ -166,6 +202,7 @@ ArchiveCard.displayName = 'ArchiveCard';
 const ArchiveGrid: React.FC = () => {
   const [items, setItems] = React.useState<ArchiveItem[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedItem, setSelectedItem] = React.useState<ArchiveItem | null>(null);
 
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
@@ -190,7 +227,8 @@ const ArchiveGrid: React.FC = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-black">
+    <>
+      <div className="w-full min-h-screen bg-black">
       {/* RAW/Brutalist Container */}
       <div className="max-w-[1600px] mx-auto px-6 pt-24 pb-16">
         {/* Header - Minimal & Raw */}
@@ -223,7 +261,12 @@ const ArchiveGrid: React.FC = () => {
         {/* Grid - Dense & Raw with irregular sizes */}
         <div className="grid grid-cols-4 gap-0 auto-rows-[200px]">
           {items.map((item, idx) => (
-            <ArchiveCard key={item.id} item={item} index={idx} />
+            <ArchiveCard 
+              key={item.id} 
+              item={item} 
+              index={idx} 
+              onClick={() => setSelectedItem(item)}
+            />
           ))}
         </div>
 
@@ -235,6 +278,17 @@ const ArchiveGrid: React.FC = () => {
         </div>
       </div>
     </div>
+
+    {/* Detail Page Modal */}
+    <AnimatePresence>
+      {selectedItem && (
+        <ArchiveDetailPage 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 };
 

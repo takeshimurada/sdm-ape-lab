@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Archive item type
 interface ArchiveItem {
   id: number;
-  type: 'image' | 'video';
+  type: 'image' | 'video' | 'youtube';
   url: string;
   title: string;
   tags: string[];
   year: string;
+  description?: string;
 }
 
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
@@ -299,42 +300,59 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       />
                       🎬 비디오
                     </label>
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={editingItem.type === 'youtube'}
+                        onChange={() => setEditingItem({ ...editingItem, type: 'youtube' })}
+                      />
+                      📺 YouTube
+                    </label>
                   </div>
                 </div>
 
-                {/* File Upload */}
-                <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">파일 업로드</label>
-                  <input
-                    type="file"
-                    accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                    className="block w-full text-sm text-gray-400
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-lg file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-pink-500 file:text-white
-                      hover:file:bg-pink-600
-                      file:cursor-pointer cursor-pointer"
-                  />
-                  {uploading && (
-                    <p className="text-sm text-pink-400 mt-2">⏳ 업로드 중...</p>
-                  )}
-                </div>
+                {/* File Upload - Only for image/video */}
+                {editingItem.type !== 'youtube' && (
+                  <div className="mb-4">
+                    <label className="block text-gray-400 text-sm mb-2">파일 업로드</label>
+                    <input
+                      type="file"
+                      accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-pink-500 file:text-white
+                        hover:file:bg-pink-600
+                        file:cursor-pointer cursor-pointer"
+                    />
+                    {uploading && (
+                      <p className="text-sm text-pink-400 mt-2">⏳ 업로드 중...</p>
+                    )}
+                  </div>
+                )}
 
                 {/* URL (optional) */}
                 <div className="mb-4">
                   <label className="block text-gray-400 text-sm mb-2">
-                    또는 URL 직접 입력 (Unsplash, Imgur 등)
+                    {editingItem.type === 'youtube' 
+                      ? 'YouTube URL (필수)' 
+                      : '또는 URL 직접 입력 (Unsplash, Imgur 등)'}
                   </label>
                   <input
                     type="text"
                     value={editingItem.url}
                     onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder={editingItem.type === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/image.jpg'}
                     className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
                   />
+                  {editingItem.type === 'youtube' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID 또는 https://youtu.be/VIDEO_ID
+                    </p>
+                  )}
                 </div>
 
                 {/* Title */}
@@ -345,6 +363,18 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     value={editingItem.title}
                     onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
                     className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <label className="block text-gray-400 text-sm mb-2">설명 (선택)</label>
+                  <textarea
+                    value={editingItem.description || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                    placeholder="프로젝트에 대한 상세 설명을 입력하세요..."
+                    rows={4}
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none resize-none"
                   />
                 </div>
 
