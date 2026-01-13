@@ -12,6 +12,7 @@ interface CustomModelLoaderProps {
 // Constants for 3D model configuration
 const MODEL_CONFIG = {
   TARGET_SCALE: 2.5,
+  TARGET_SCALE_MOBILE: 2.0, // 모바일에서 더 작게
   ENV_MAP_INTENSITY: 0.15,
   ROUGHNESS: 0.85,
   METALNESS: 0.0,
@@ -304,7 +305,12 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
       const box = new THREE.Box3().setFromObject(scene);
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
-      const targetScale = MODEL_CONFIG.TARGET_SCALE / maxDim;
+      
+      // 반응형 스케일: 화면 크기에 따라 조정
+      const isMobile = viewport.width < 768;
+      const baseScale = isMobile ? MODEL_CONFIG.TARGET_SCALE_MOBILE : MODEL_CONFIG.TARGET_SCALE;
+      const targetScale = baseScale / maxDim;
+      
       setScale(targetScale);
 
       const center = box.getCenter(new THREE.Vector3());
@@ -328,7 +334,7 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
         }
       });
     }
-  }, [scene]);
+  }, [scene, viewport.width]);
 
   useFrame(() => {
     if (!groupRef.current) return;
