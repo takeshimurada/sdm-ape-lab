@@ -12,6 +12,27 @@ interface ArchiveItem {
   description?: string;
 }
 
+// YouTube URL에서 비디오 ID 추출
+const getYouTubeVideoId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) return match[1];
+  }
+  
+  return null;
+};
+
+const getYouTubeThumbnail = (url: string): string => {
+  const videoId = getYouTubeVideoId(url);
+  return videoId 
+    ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+    : url;
+};
+
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [items, setItems] = useState<ArchiveItem[]>([]);
   const [editingItem, setEditingItem] = useState<ArchiveItem | null>(null);
@@ -109,7 +130,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       url: '',
       title: '새 프로젝트',
       tags: [],
-      year: new Date().getFullYear().toString()
+      year: new Date().getFullYear().toString(),
+      description: ''
     };
     setEditingItem(newItem);
     setIsAdding(true);
@@ -154,7 +176,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         <div className="max-w-6xl mx-auto mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">🔐 관리자 페이지</h1>
+              <h1 
+                className="text-3xl font-bold text-white mb-2"
+                style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+              >
+                관리자 페이지
+              </h1>
               <p className="text-gray-400 text-sm">
                 프로젝트를 추가/수정/삭제하면 <strong className="text-pink-400">즉시 반영</strong>됩니다!
               </p>
@@ -175,6 +202,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 className="mb-4 p-4 bg-gray-800/50 border border-pink-500/30 rounded-lg text-white"
+                style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
               >
                 {message}
               </motion.div>
@@ -185,78 +213,65 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           <button
             onClick={handleAdd}
             className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors"
+            style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
           >
             + 새 프로젝트 추가
           </button>
         </div>
 
-        {/* Projects Grid */}
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-pink-500/30 transition-colors"
-            >
-              {/* Preview */}
-              <div className="relative aspect-square bg-gray-800">
-                {item.type === 'video' ? (
-                  <video 
-                    src={item.url} 
-                    className="w-full h-full object-cover" 
-                    muted 
-                    loop 
-                  />
-                ) : (
-                  <img 
-                    src={item.url} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover" 
-                  />
-                )}
-                
-                <div className="absolute top-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
-                  {item.type === 'video' ? '🎬 VIDEO' : '🖼️ IMAGE'}
+        {/* Projects List - Text-based like Jon Rafman */}
+        <div className="max-w-6xl mx-auto">
+          <div className="space-y-1">
+            {items.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="group flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-900 transition-colors"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <span className="text-gray-500 text-sm font-mono">
+                    [{String(item.id).padStart(3, '0')}]
+                  </span>
+                  <span className="text-white/60">
+                    {item.type === 'youtube' ? '𓆛' : item.type === 'video' ? '𓁹' : '𓉔'}
+                  </span>
+                  <span 
+                    className="text-white"
+                    style={{ 
+                      fontFamily: /[\u3131-\uD79D]/.test(item.title) 
+                        ? 'Dotum, "돋움", sans-serif' 
+                        : 'system-ui, -apple-system, sans-serif'
+                    }}
+                  >
+                    {item.title}
+                  </span>
+                  <span className="text-gray-600 text-sm font-mono ml-auto">
+                    {item.year}
+                  </span>
                 </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="text-white font-semibold mb-2">{item.title}</h3>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {item.tags.map((tag, idx) => (
-                    <span 
-                      key={idx}
-                      className="px-2 py-0.5 bg-gray-800 text-gray-300 text-xs rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-gray-500 text-sm mb-4">{item.year}</p>
 
                 {/* Actions */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => {
                       setEditingItem(item);
                       setIsAdding(false);
                     }}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                   >
-                    ✏️ 수정
+                    수정
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
                   >
-                    🗑️
+                    삭제
                   </button>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* Edit Modal */}
@@ -276,13 +291,21 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800"
               >
-                <h2 className="text-2xl font-bold text-white mb-6">
+                <h2 
+                  className="text-2xl font-bold text-white mb-6"
+                  style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                >
                   {isAdding ? '새 프로젝트 추가' : '프로젝트 수정'}
                 </h2>
 
                 {/* Type Selection */}
                 <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">타입</label>
+                  <label 
+                    className="block text-gray-400 text-sm mb-2"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                  >
+                    타입
+                  </label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
@@ -314,7 +337,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 {/* File Upload - Only for image/video */}
                 {editingItem.type !== 'youtube' && (
                   <div className="mb-4">
-                    <label className="block text-gray-400 text-sm mb-2">파일 업로드</label>
+                    <label 
+                      className="block text-gray-400 text-sm mb-2"
+                      style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                    >
+                      파일 업로드
+                    </label>
                     <input
                       type="file"
                       accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
@@ -329,17 +357,25 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         file:cursor-pointer cursor-pointer"
                     />
                     {uploading && (
-                      <p className="text-sm text-pink-400 mt-2">⏳ 업로드 중...</p>
+                      <p 
+                        className="text-sm text-pink-400 mt-2"
+                        style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                      >
+                        ⏳ 업로드 중...
+                      </p>
                     )}
                   </div>
                 )}
 
-                {/* URL (optional) */}
+                {/* URL */}
                 <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">
+                  <label 
+                    className="block text-gray-400 text-sm mb-2"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                  >
                     {editingItem.type === 'youtube' 
                       ? 'YouTube URL (필수)' 
-                      : '또는 URL 직접 입력 (Unsplash, Imgur 등)'}
+                      : '또는 URL 직접 입력'}
                   </label>
                   <input
                     type="text"
@@ -350,67 +386,20 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                   />
                   {editingItem.type === 'youtube' && (
                     <p className="text-xs text-gray-500 mt-1">
-                      💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID 또는 https://youtu.be/VIDEO_ID
+                      💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID
                     </p>
                   )}
-                </div>
-
-                {/* Title */}
-                <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">제목</label>
-                  <input
-                    type="text"
-                    value={editingItem.title}
-                    onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">설명 (선택)</label>
-                  <textarea
-                    value={editingItem.description || ''}
-                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                    placeholder="프로젝트에 대한 상세 설명을 입력하세요..."
-                    rows={4}
-                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none resize-none"
-                  />
-                </div>
-
-                {/* Tags */}
-                <div className="mb-4">
-                  <label className="block text-gray-400 text-sm mb-2">
-                    태그 (쉼표로 구분)
-                  </label>
-                  <input
-                    type="text"
-                    value={editingItem.tags.join(', ')}
-                    onChange={(e) => setEditingItem({ 
-                      ...editingItem, 
-                      tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                    })}
-                    placeholder="Research, Photography, Art"
-                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
-                  />
-                </div>
-
-                {/* Year */}
-                <div className="mb-6">
-                  <label className="block text-gray-400 text-sm mb-2">연도</label>
-                  <input
-                    type="text"
-                    value={editingItem.year}
-                    onChange={(e) => setEditingItem({ ...editingItem, year: e.target.value })}
-                    placeholder="2025"
-                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
-                  />
                 </div>
 
                 {/* URL Preview */}
                 {editingItem.url && (
                   <div className="mb-4 p-3 bg-gray-800 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">미리보기 URL:</p>
+                    <p 
+                      className="text-xs text-gray-400 mb-1"
+                      style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                    >
+                      미리보기 URL:
+                    </p>
                     <p className="text-xs text-green-400 break-all">{editingItem.url}</p>
                   </div>
                 )}
@@ -418,11 +407,74 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 {/* Validation Warning */}
                 {!editingItem.url && (
                   <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
-                    <p className="text-sm text-yellow-400">
+                    <p 
+                      className="text-sm text-yellow-400"
+                      style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                    >
                       ⚠️ 파일을 업로드하거나 URL을 입력해주세요.
                     </p>
                   </div>
                 )}
+
+                {/* Title */}
+                <div className="mb-4">
+                  <label 
+                    className="block text-gray-400 text-sm mb-2"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                  >
+                    제목
+                  </label>
+                  <input
+                    type="text"
+                    value={editingItem.title}
+                    onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
+                    style={{ 
+                      fontFamily: /[\u3131-\uD79D]/.test(editingItem.title) 
+                        ? 'Dotum, "돋움", sans-serif' 
+                        : 'system-ui, -apple-system, sans-serif'
+                    }}
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="mb-4">
+                  <label 
+                    className="block text-gray-400 text-sm mb-2"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                  >
+                    설명 (선택)
+                  </label>
+                  <textarea
+                    value={editingItem.description || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                    placeholder="프로젝트에 대한 상세 설명을 입력하세요..."
+                    rows={4}
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none resize-none"
+                    style={{ 
+                      fontFamily: /[\u3131-\uD79D]/.test(editingItem.description || '') 
+                        ? 'Dotum, "돋움", sans-serif' 
+                        : 'system-ui, -apple-system, sans-serif'
+                    }}
+                  />
+                </div>
+
+                {/* Year */}
+                <div className="mb-6">
+                  <label 
+                    className="block text-gray-400 text-sm mb-2"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                  >
+                    연도
+                  </label>
+                  <input
+                    type="text"
+                    value={editingItem.year}
+                    onChange={(e) => setEditingItem({ ...editingItem, year: e.target.value })}
+                    placeholder="2025"
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none font-mono"
+                  />
+                </div>
 
                 {/* Actions */}
                 <div className="flex gap-4">
@@ -430,12 +482,14 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     onClick={handleSave}
                     disabled={saving || !editingItem.url || !editingItem.title}
                     className="flex-1 px-6 py-3 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
                     {saving ? '⏳ 저장 중...' : !editingItem.url ? '⚠️ URL 필요' : !editingItem.title ? '⚠️ 제목 필요' : '💾 저장'}
                   </button>
                   <button
                     onClick={() => setEditingItem(null)}
                     className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
                     취소
                   </button>
