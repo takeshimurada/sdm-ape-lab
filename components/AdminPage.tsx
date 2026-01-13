@@ -67,6 +67,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     setUploading(true);
     setMessage('📤 파일 업로드 중...');
 
+    console.log('📤 Starting upload:', file.name);
+
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -76,17 +78,23 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         body: formData
       });
 
+      console.log('📡 Upload response status:', res.status);
+
       if (res.ok) {
         const result = await res.json();
+        console.log('✅ Upload result:', result);
+        
         setEditingItem({ ...editingItem, url: result.url });
         setMessage(`✅ 업로드 완료: ${result.originalName}`);
         setTimeout(() => setMessage(''), 3000);
       } else {
+        const errorText = await res.text();
+        console.error('❌ Upload failed:', errorText);
         throw new Error('업로드 실패');
       }
     } catch (err) {
       console.error('Upload error:', err);
-      setMessage('❌ 업로드 중 오류가 발생했습니다.');
+      setMessage('❌ 업로드 중 오류가 발생했습니다: ' + (err as Error).message);
     } finally {
       setUploading(false);
     }
@@ -369,14 +377,31 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                   />
                 </div>
 
+                {/* URL Preview */}
+                {editingItem.url && (
+                  <div className="mb-4 p-3 bg-gray-800 rounded-lg">
+                    <p className="text-xs text-gray-400 mb-1">미리보기 URL:</p>
+                    <p className="text-xs text-green-400 break-all">{editingItem.url}</p>
+                  </div>
+                )}
+
+                {/* Validation Warning */}
+                {!editingItem.url && (
+                  <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
+                    <p className="text-sm text-yellow-400">
+                      ⚠️ 파일을 업로드하거나 URL을 입력해주세요.
+                    </p>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div className="flex gap-4">
                   <button
                     onClick={handleSave}
-                    disabled={saving || !editingItem.url}
+                    disabled={saving || !editingItem.url || !editingItem.title}
                     className="flex-1 px-6 py-3 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
                   >
-                    {saving ? '⏳ 저장 중...' : '💾 저장'}
+                    {saving ? '⏳ 저장 중...' : !editingItem.url ? '⚠️ URL 필요' : !editingItem.title ? '⚠️ 제목 필요' : '💾 저장'}
                   </button>
                   <button
                     onClick={() => setEditingItem(null)}
