@@ -11,8 +11,8 @@ interface CustomModelLoaderProps {
 
 // Constants for 3D model configuration
 const MODEL_CONFIG = {
-  TARGET_SCALE: 2.5,
-  TARGET_SCALE_MOBILE: 2.0, // 모바일에서 더 작게
+  TARGET_SCALE: 3.5, // 더 크게 (기존 2.5 → 3.5)
+  TARGET_SCALE_MOBILE: 3.0, // 모바일도 크게 (기존 2.0 → 3.0)
   ENV_MAP_INTENSITY: 0.15,
   ROUGHNESS: 0.85,
   METALNESS: 0.0,
