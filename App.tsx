@@ -227,7 +227,7 @@ const App: React.FC = () => {
               <AdminPage onExit={handleGoHome} />
             </motion.div>
           ) : currentView === 'ARCHIVE' ? (
-            <motion.div key="archive" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="absolute inset-0 z-10">
+            <motion.div key="archive" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="fixed inset-0 z-10 overflow-y-auto">
               <ArchiveGrid />
             </motion.div>
           ) : (

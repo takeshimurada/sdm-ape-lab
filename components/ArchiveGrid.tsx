@@ -190,7 +190,7 @@ const ArchiveGrid: React.FC = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-black overflow-y-auto">
+    <div className="w-full min-h-screen bg-black">
       {/* RAW/Brutalist Container */}
       <div className="max-w-[1600px] mx-auto px-6 pt-24 pb-16">
         {/* Header - Minimal & Raw */}
