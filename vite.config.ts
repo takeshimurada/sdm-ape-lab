@@ -13,6 +13,16 @@ export default defineConfig(({ mode }) => {
           'localhost',
           '127.0.0.1'
         ],
+        proxy: {
+          '/api': {
+            target: 'http://localhost:3001',
+            changeOrigin: true,
+          },
+          '/uploads': {
+            target: 'http://localhost:3001',
+            changeOrigin: true,
+          }
+        }
       },
       build: {
         rollupOptions: {

@@ -169,7 +169,7 @@ const ArchiveGrid: React.FC = () => {
 
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
-    fetch('/archive-data.json')
+    fetch('/api/archive')
       .then(res => res.json())
       .then(data => {
         setItems(data);
