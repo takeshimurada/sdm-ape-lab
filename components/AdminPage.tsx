@@ -39,9 +39,9 @@ const getBackendUrl = () => {
   if (isLocalhost) {
     return 'http://localhost:3001';
   }
-  // Sandbox 환경: HTTPS 유지하면서 포트만 변경
-  // https://3000-xxx.sandbox.novita.ai -> https://3001-xxx.sandbox.novita.ai
-  return window.location.origin.replace('3000-', '3001-');
+  // Sandbox 환경: HTTPS 유지하면서 포트를 3001로 변경
+  // https://3002-xxx.sandbox.novita.ai -> https://3001-xxx.sandbox.novita.ai
+  return window.location.origin.replace(/\d{4}-/, '3001-');
 };
 
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
