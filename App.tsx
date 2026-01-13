@@ -90,7 +90,26 @@ const App: React.FC = () => {
     setCurrentView('HOME');
   }, []);
 
+  // 🔐 Admin authentication helper
+  const promptAdminPassword = useCallback(() => {
+    const password = prompt('🔐 관리자 비밀번호를 입력하세요:');
+    
+    if (password === 'sdmapelab2025') {
+      setCurrentView('ADMIN');
+      return true;
+    } else if (password !== null) {
+      alert('❌ 비밀번호가 틀렸습니다.');
+    }
+    return false;
+  }, []);
+
   useEffect(() => {
+    // Check URL parameter for admin access: ?admin
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('admin')) {
+      promptAdminPassword();
+    }
+
     // Ultra-fast cursor movement using RAF for 60fps+ performance
     let rafId: number;
     let mousePos = { x: -100, y: -100 };
@@ -111,18 +130,12 @@ const App: React.FC = () => {
     const handleMouseDown = () => setIsClicked(true);
     const handleMouseUp = () => setIsClicked(false);
 
-    // 🔐 Admin access: Ctrl+Shift+A with password
+    // 🔐 Admin access: Multiple keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      // Ctrl+Shift+A or Ctrl+Shift+E
+      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a' || e.key === 'E' || e.key === 'e')) {
         e.preventDefault();
-        const password = prompt('🔐 관리자 비밀번호를 입력하세요:');
-        
-        // 비밀번호: sdmapelab2025
-        if (password === 'sdmapelab2025') {
-          setCurrentView('ADMIN');
-        } else if (password !== null) {
-          alert('❌ 비밀번호가 틀렸습니다.');
-        }
+        promptAdminPassword();
       }
     };
 
@@ -143,7 +156,7 @@ const App: React.FC = () => {
       cancelAnimationFrame(rafId);
       clearTimeout(timer);
     };
-  }, []);
+  }, [promptAdminPassword]);
 
   return (
     <div className="relative w-full h-screen bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
@@ -218,7 +231,7 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <Navbar currentView={currentView} setView={handleSetView} onLogoClick={handleGoHome} />
+      <Navbar currentView={currentView} setView={handleSetView} onLogoClick={handleGoHome} onAdminAccess={promptAdminPassword} />
 
       <main className="relative w-full h-full">
         <AnimatePresence mode="wait">
