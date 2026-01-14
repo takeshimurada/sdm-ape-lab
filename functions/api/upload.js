@@ -50,37 +50,19 @@ export async function onRequestPost(context) {
       });
     }
     
-    const r2 = context.env.UPLOADS_R2;
-    
-    if (!r2) {
-      return new Response(JSON.stringify({ 
-        error: 'R2가 설정되지 않았습니다. Cloudflare Dashboard에서 R2를 설정해주세요.' 
-      }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    }
-    
-    // 파일명 생성 (타임스탬프 + 원본 파일명)
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name}`;
-    
-    // R2에 업로드
-    await r2.put(filename, file.stream(), {
-      httpMetadata: {
-        contentType: file.type,
+    // Cloudflare Pages는 정적 호스팅이므로 파일 저장 불가
+    // 로컬 개발 환경에서만 파일 업로드 가능
+    return new Response(JSON.stringify({ 
+      error: 'Cloudflare Pages에서는 파일 업로드가 불가능합니다.',
+      message: '로컬 개발 환경(localhost)에서만 파일 업로드가 가능합니다. 로컬에서 파일을 업로드한 후 Git에 커밋하고 배포하세요.',
+      instruction: '1. 로컬에서 npm run dev:full 실행\n2. 관리자 페이지에서 파일 업로드\n3. Git에 커밋: git add public/uploads/\n4. 배포: git push origin main'
+    }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
     });
-    
-    // Public Access가 설정된 경우 URL 생성
-    // R2 Public URL 형식: https://<account-id>.r2.cloudflarestorage.com/<bucket-name>/<filename>
-    // 또는 Custom Domain이 설정된 경우 해당 도메인 사용
-    
-    // 일단 상대 경로 반환 (프론트엔드에서 처리)
-    const fileUrl = `/uploads/${filename}`;
     
     return new Response(JSON.stringify({
       success: true,

@@ -27,15 +27,17 @@
 
 ---
 
-### 2단계: R2 Public Access 설정 (선택사항)
+### 2단계: R2 Public Development URL 활성화
 
 업로드된 파일을 직접 URL로 접근하려면:
 
 1. 생성한 버킷 클릭
-2. "Settings" 탭
-3. "Public Access" 섹션에서 "Allow Access" 활성화
-4. "Allow List" 또는 "Allow Get" 선택
-5. Save
+2. "Settings" 탭 (또는 "General" 탭)
+3. "Public Development URL" 섹션 찾기
+4. "Enable" 버튼 클릭
+5. 활성화 완료
+
+**중요**: Public Development URL을 활성화하면 파일에 공개적으로 접근할 수 있는 URL이 생성됩니다.
 
 ---
 

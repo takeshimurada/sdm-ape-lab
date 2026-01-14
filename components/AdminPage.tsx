@@ -229,12 +229,14 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         const result = await res.json();
         console.log('✅ Upload result:', result);
         
-        // R2를 사용하는 경우 전체 URL 구성 필요
+        // R2를 사용하는 경우 URL 처리
         let fileUrl = result.url;
         if (!backendUrl && result.url.startsWith('/uploads/')) {
-          // Cloudflare Pages에서 R2 Public URL 구성
-          // R2 Public Access가 설정되어 있다면 전체 URL 필요
-          // 일단 상대 경로 사용 (나중에 R2 Public URL로 변경 가능)
+          // Cloudflare Pages에서 R2 사용 시
+          // R2 Public Development URL 형식으로 변환 필요
+          // 형식: https://pub-<account-id>.r2.dev/sdm-ape-lab-uploads/<filename>
+          // 일단 상대 경로로 저장 (나중에 R2 Public URL로 변환)
+          // 또는 R2 Public Development URL이 활성화되어 있다면 직접 사용 가능
           fileUrl = result.url;
         }
         
@@ -244,10 +246,13 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       } else {
         const errorData = await res.json().catch(() => ({ error: '업로드 실패' }));
         console.error('❌ Upload failed:', errorData);
-        setMessage(`❌ 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
-        if (errorData.error && errorData.error.includes('R2가 설정되지 않았습니다')) {
-          setTimeout(() => setMessage(''), 8000);
+        
+        // Cloudflare Pages에서 업로드 불가 안내
+        if (errorData.error && errorData.error.includes('Cloudflare Pages')) {
+          setMessage(`⚠️ ${errorData.message || errorData.error}\n\n${errorData.instruction || ''}`);
+          setTimeout(() => setMessage(''), 10000);
         } else {
+          setMessage(`❌ 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
           setTimeout(() => setMessage(''), 5000);
         }
       }
@@ -612,19 +617,47 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                     >
                       파일 업로드
+                      {!getBackendUrl() && (
+                        <span className="ml-2 text-yellow-400 text-xs">
+                          (로컬에서만 가능)
+                        </span>
+                      )}
                     </label>
+                    {!getBackendUrl() && (
+                      <div className="mb-2 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
+                        <p 
+                          className="text-xs text-yellow-400 mb-1"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          ⚠️ Cloudflare Pages에서는 파일 업로드가 불가능합니다.
+                        </p>
+                        <p 
+                          className="text-xs text-yellow-300/80"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          로컬 개발 환경(localhost)에서만 파일 업로드가 가능합니다.
+                        </p>
+                        <p 
+                          className="text-xs text-yellow-300/80 mt-1"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          또는 외부 이미지 URL을 직접 입력하세요.
+                        </p>
+                      </div>
+                    )}
                     <input
                       type="file"
                       accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
                       onChange={handleFileUpload}
-                      disabled={uploading}
+                      disabled={uploading || !getBackendUrl()}
                       className="block w-full text-sm text-gray-400
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-lg file:border-0
                         file:text-sm file:font-semibold
                         file:bg-pink-500 file:text-white
                         hover:file:bg-pink-600
-                        file:cursor-pointer cursor-pointer"
+                        file:cursor-pointer cursor-pointer
+                        disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     {uploading && (
                       <p 
