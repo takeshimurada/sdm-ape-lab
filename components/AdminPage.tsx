@@ -39,7 +39,22 @@ const getYouTubeThumbnail = (url: string): string => {
 };
 
 // 백엔드 URL 헬퍼 함수
+// 방명록은 항상 Cloudflare Pages KV 사용 (하나의 DB)
 const getBackendUrl = () => {
+  // Cloudflare Pages URL (KV 사용)
+  const cloudflarePagesUrl = 'https://88a85538.sdm-ape-lab.pages.dev';
+  
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+  const isSandbox = hostname.includes('sandbox.novita.ai');
+  
+  // 방명록 관련 API는 항상 Cloudflare Pages 사용
+  // Archive는 로컬에서 작업할 수 있도록 로컬 서버 사용
+  return cloudflarePagesUrl;
+};
+
+// Archive용 백엔드 URL (로컬 개발 지원)
+const getArchiveBackendUrl = () => {
   const hostname = window.location.hostname;
   const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isSandbox = hostname.includes('sandbox.novita.ai');
@@ -48,13 +63,10 @@ const getBackendUrl = () => {
   if (isLocalhost) {
     return 'http://localhost:3001';
   } else if (isSandbox) {
-    // Sandbox 환경: HTTPS 유지하면서 포트를 3001로 변경
     return window.location.origin.replace(/\d{4}-/, '3001-');
   } else if (isCloudflare) {
-    // Cloudflare Pages: Functions API 사용 (상대 경로)
     return '';
   } else {
-    // 기타: Functions API 사용
     return '';
   }
 };
@@ -88,7 +100,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   const loadData = async () => {
     try {
-      const backendUrl = getBackendUrl();
+      const backendUrl = getArchiveBackendUrl();
       const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
       const res = await fetch(apiUrl);
@@ -103,11 +115,11 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
-  // 📖 방명록 데이터 로드
+  // 📖 방명록 데이터 로드 (항상 Cloudflare Pages KV 사용)
   const loadGuestbookData = async () => {
     try {
-      const backendUrl = getBackendUrl();
-      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook` : '/api/guestbook';
+      const backendUrl = getBackendUrl(); // Cloudflare Pages URL
+      const apiUrl = `${backendUrl}/api/guestbook`;
       
       const res = await fetch(apiUrl);
       if (!res.ok) {
@@ -120,11 +132,11 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
-  // ✏️ 방명록 엔트리 수정
+  // ✏️ 방명록 엔트리 수정 (항상 Cloudflare Pages KV 사용)
   const handleGuestbookUpdate = async (entry: GuestBookEntry) => {
     try {
-      const backendUrl = getBackendUrl();
-      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook/${entry.id}` : `/api/guestbook/${entry.id}`;
+      const backendUrl = getBackendUrl(); // Cloudflare Pages URL
+      const apiUrl = `${backendUrl}/api/guestbook/${entry.id}`;
       
       const res = await fetch(apiUrl, {
         method: 'PUT',
@@ -138,15 +150,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       if (res.ok) {
         await loadGuestbookData();
         setEditingEntry(null);
-        const backendUrl = getBackendUrl();
-        if (backendUrl) {
-          // 로컬 환경: Git 커밋 안내
-          setMessage('✅ 방명록이 수정되었습니다! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/guestbook-data.json\n2. git commit -m "Update guestbook"\n3. git push origin main');
-          setTimeout(() => setMessage(''), 8000);
-        } else {
-          setMessage('✅ 방명록이 수정되었습니다.');
-          setTimeout(() => setMessage(''), 3000);
-        }
+        // 항상 Cloudflare Pages KV에 저장됨
+        setMessage('✅ 방명록이 수정되었습니다.');
+        setTimeout(() => setMessage(''), 3000);
       } else {
         throw new Error('수정 실패');
       }
@@ -156,13 +162,13 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
-  // 🗑️ 방명록 엔트리 삭제
+  // 🗑️ 방명록 엔트리 삭제 (항상 Cloudflare Pages KV 사용)
   const handleGuestbookDelete = async (id: number) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     
     try {
-      const backendUrl = getBackendUrl();
-      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook/${id}` : `/api/guestbook/${id}`;
+      const backendUrl = getBackendUrl(); // Cloudflare Pages URL
+      const apiUrl = `${backendUrl}/api/guestbook/${id}`;
       
       const res = await fetch(apiUrl, {
         method: 'DELETE'
@@ -170,15 +176,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       
       if (res.ok) {
         await loadGuestbookData();
-        const backendUrl = getBackendUrl();
-        if (backendUrl) {
-          // 로컬 환경: Git 커밋 안내
-          setMessage('🗑️ 방명록이 삭제되었습니다! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/guestbook-data.json\n2. git commit -m "Update guestbook"\n3. git push origin main');
-          setTimeout(() => setMessage(''), 8000);
-        } else {
-          setMessage('🗑️ 방명록이 삭제되었습니다.');
-          setTimeout(() => setMessage(''), 3000);
-        }
+        // 항상 Cloudflare Pages KV에 저장됨
+        setMessage('🗑️ 방명록이 삭제되었습니다.');
+        setTimeout(() => setMessage(''), 3000);
       } else {
         throw new Error('삭제 실패');
       }
@@ -192,7 +192,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const saveData = async (data: ArchiveItem[]) => {
     setSaving(true);
     try {
-      const backendUrl = getBackendUrl();
+      const backendUrl = getArchiveBackendUrl();
       const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
       const res = await fetch(apiUrl, {
@@ -240,7 +240,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const file = e.target.files?.[0];
     if (!file || !editingItem) return;
 
-    const backendUrl = getBackendUrl();
+    const backendUrl = getArchiveBackendUrl();
     const apiUrl = backendUrl ? `${backendUrl}/api/upload` : '/api/upload';
 
     setUploading(true);

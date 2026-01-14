@@ -50,24 +50,10 @@ const GuestBook: React.FC = () => {
     }
   };
 
-  // Detect environment and construct backend URL
+  // 항상 Cloudflare Pages KV 사용 (하나의 DB)
   const getBackendUrl = () => {
-    if (typeof window === 'undefined') return '';
-    
-    const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isSandbox = hostname.includes('sandbox.novita.ai');
-    
-    if (isLocalhost) {
-      return 'http://localhost:3001';
-    } else if (isSandbox) {
-      // Extract port from current URL and replace with backend port
-      const currentOrigin = window.location.origin;
-      return currentOrigin.replace(/\d{4}-/, '3001-');
-    } else {
-      // Cloudflare Pages or other production environment
-      return '';
-    }
+    // Cloudflare Pages URL (KV 사용)
+    return 'https://88a85538.sdm-ape-lab.pages.dev';
   };
 
   // Load entries
