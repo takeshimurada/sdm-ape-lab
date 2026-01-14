@@ -77,6 +77,7 @@ interface GuestBookEntry {
   name: string;
   message: string;
   date: string;
+  time?: string;
 }
 
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
@@ -540,7 +541,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       <div className="flex-1">
                         <div className="flex items-baseline gap-3 mb-2">
                           <span className="text-white font-medium text-sm">{entry.name}</span>
-                          <span className="text-white/30 text-xs">{entry.date}</span>
+                          <span className="text-white/30 text-xs">
+                            {entry.date} {entry.time && entry.time}
+                          </span>
                         </div>
                         <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
                           {entry.message}

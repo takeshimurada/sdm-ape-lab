@@ -6,6 +6,7 @@ interface GuestBookEntry {
   name: string;
   message: string;
   date: string;
+  time?: string;
 }
 
 const GuestBook: React.FC = () => {
@@ -233,7 +234,9 @@ const GuestBook: React.FC = () => {
               >
                 <div className="flex items-baseline justify-between mb-2">
                   <span className="text-white text-sm font-medium">{entry.name}</span>
-                  <span className="text-white/30 text-xs">{entry.date}</span>
+                  <span className="text-white/30 text-xs">
+                    {entry.date} {entry.time && entry.time}
+                  </span>
                 </div>
                 <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
                   {entry.message}

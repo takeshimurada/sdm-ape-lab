@@ -86,15 +86,21 @@ export async function onRequestPost(context) {
     
     if (!kv) {
       // KV가 없을 때는 200 응답을 반환하되, 실제 저장은 안 됨을 알림
+      const now = new Date();
       const newEntry = {
         id: Date.now(),
         name: name.trim(),
         message: message.trim(),
-        date: new Date().toLocaleDateString('ko-KR', {
+        date: now.toLocaleDateString('ko-KR', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit'
-        }).replace(/\. /g, '.').replace(/\.$/, '')
+        }).replace(/\. /g, '.').replace(/\.$/, ''),
+        time: now.toLocaleTimeString('ko-KR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        })
       };
       
       return new Response(JSON.stringify({ 
@@ -115,15 +121,21 @@ export async function onRequestPost(context) {
     const entries = existingData || [];
     
     // 새 엔트리 생성
+    const now = new Date();
     const newEntry = {
       id: entries.length > 0 ? Math.max(...entries.map(e => e.id)) + 1 : 1,
       name: name.trim(),
       message: message.trim(),
-      date: new Date().toLocaleDateString('ko-KR', {
+      date: now.toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
-      }).replace(/\. /g, '.').replace(/\.$/, '')
+      }).replace(/\. /g, '.').replace(/\.$/, ''),
+      time: now.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
     };
     
     // 배열에 추가
