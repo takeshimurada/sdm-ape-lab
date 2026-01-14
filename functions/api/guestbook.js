@@ -85,10 +85,24 @@ export async function onRequestPost(context) {
     const kv = context.env.GUESTBOOK_KV;
     
     if (!kv) {
+      // KV가 없을 때는 200 응답을 반환하되, 실제 저장은 안 됨을 알림
+      const newEntry = {
+        id: Date.now(),
+        name: name.trim(),
+        message: message.trim(),
+        date: new Date().toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).replace(/\. /g, '.').replace(/\.$/, '')
+      };
+      
       return new Response(JSON.stringify({ 
-        error: 'KV가 설정되지 않았습니다. Cloudflare Dashboard에서 KV를 설정해주세요.' 
+        success: true,
+        entry: newEntry,
+        warning: 'KV가 설정되지 않아 실제로 저장되지 않습니다. Cloudflare Dashboard에서 KV를 설정해주세요.'
       }), {
-        status: 500,
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
@@ -128,7 +142,12 @@ export async function onRequestPost(context) {
       },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: '저장 중 오류가 발생했습니다.' }), {
+    // 에러 상세 정보 반환 (디버깅용)
+    return new Response(JSON.stringify({ 
+      error: '저장 중 오류가 발생했습니다.',
+      details: error.message,
+      stack: error.stack
+    }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
