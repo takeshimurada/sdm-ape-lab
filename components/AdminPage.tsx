@@ -102,11 +102,11 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   const loadData = async () => {
     try {
-      // Archive도 Cloudflare Pages KV 사용 (로컬과 Cloudflare 동기화)
+      // Archive도 항상 Cloudflare Pages KV 사용 (로컬과 Cloudflare 동기화)
       const backendUrl = getBackendUrl(); // Cloudflare Pages URL
       const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
-      const res = await fetch(apiUrl);
+      const res = await fetch(apiUrl, { cache: 'no-store' });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -777,28 +777,6 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         ? '웹사이트 URL (필수)'
                         : 'URL 입력'}
                     </label>
-                    {!getArchiveBackendUrl() && editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
-                      <div className="mb-2 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-                        <p 
-                          className="text-xs text-blue-300 mb-1"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          💡 Cloudflare Pages에서는 파일 업로드가 불가능합니다.
-                        </p>
-                        <p 
-                          className="text-xs text-blue-200/80"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          <strong>방법 1:</strong> 로컬에서 파일 업로드 후 Git 커밋 → <code className="text-blue-300">/uploads/파일명</code> 형식으로 입력
-                        </p>
-                        <p 
-                          className="text-xs text-blue-200/80 mt-1"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          <strong>방법 2:</strong> 외부 이미지/비디오 URL 직접 입력 (예: <code className="text-blue-300">https://example.com/image.jpg</code>)
-                        </p>
-                      </div>
-                    )}
                     <input
                       type="text"
                       value={editingItem.url}
