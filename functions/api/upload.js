@@ -77,14 +77,21 @@ export async function onRequestPost(context) {
       },
     });
     
-    // R2 Public Development URL 생성
-    // Public Development URL 형식: https://pub-<account-id>.r2.dev/<bucket-name>/<filename>
-    // account-id는 동적으로 가져오기 어려우므로, 파일명만 반환하고 프론트엔드에서 처리
-    // 또는 Custom Domain이 설정된 경우 해당 도메인 사용
-    
-    // 일단 파일명만 반환 (프론트엔드에서 R2 Public URL로 변환)
-    // R2 Public URL은 Public Development URL이 활성화되어 있어야 접근 가능
-    const fileUrl = `/uploads/${filename}`;
+    // R2 Public Development URL 또는 커스텀 도메인 사용
+    // 환경변수 R2_PUBLIC_BASE_URL 이 설정되어 있으면 해당 값을 기준으로 공개 URL 생성
+    // 예: https://pub-xxxxxxx.r2.dev/sdm-ape-lab-uploads
+    const base = context.env.R2_PUBLIC_BASE_URL;
+    let fileUrl;
+
+    if (base && typeof base === 'string' && base.length > 0) {
+      // 마지막 슬래시 제거 후 파일명 인코딩하여 붙이기
+      const trimmed = base.replace(/\/+$/, '');
+      fileUrl = `${trimmed}/${encodeURIComponent(filename)}`;
+    } else {
+      // 아직 Public URL 설정 전이라면 예전처럼 상대 경로 반환
+      // (로컬 백엔드나, 추후 다른 라우팅을 위해)
+      fileUrl = `/uploads/${filename}`;
+    }
     
     return new Response(JSON.stringify({
       success: true,
