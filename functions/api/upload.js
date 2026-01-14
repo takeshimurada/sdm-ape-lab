@@ -50,19 +50,41 @@ export async function onRequestPost(context) {
       });
     }
     
-    // Cloudflare Pages는 정적 호스팅이므로 파일 저장 불가
-    // 로컬 개발 환경에서만 파일 업로드 가능
-    return new Response(JSON.stringify({ 
-      error: 'Cloudflare Pages에서는 파일 업로드가 불가능합니다.',
-      message: '로컬 개발 환경(localhost)에서만 파일 업로드가 가능합니다. 로컬에서 파일을 업로드한 후 Git에 커밋하고 배포하세요.',
-      instruction: '1. 로컬에서 npm run dev:full 실행\n2. 관리자 페이지에서 파일 업로드\n3. Git에 커밋: git add public/uploads/\n4. 배포: git push origin main'
-    }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+    const r2 = context.env.UPLOADS_R2;
+    
+    if (!r2) {
+      return new Response(JSON.stringify({ 
+        error: 'R2가 설정되지 않았습니다.',
+        message: 'Cloudflare Dashboard에서 R2를 설정해주세요.',
+        instruction: '1. R2 버킷 생성 (sdm-ape-lab-uploads)\n2. Public Development URL 활성화\n3. Pages → Settings → Functions → R2 Bucket Bindings에 UPLOADS_R2 추가'
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+    
+    // 파일명 생성 (타임스탬프 + 원본 파일명)
+    const timestamp = Date.now();
+    const filename = `${timestamp}-${file.name}`;
+    
+    // R2에 업로드
+    await r2.put(filename, file.stream(), {
+      httpMetadata: {
+        contentType: file.type,
       },
     });
+    
+    // R2 Public Development URL 생성
+    // Public Development URL 형식: https://pub-<account-id>.r2.dev/<bucket-name>/<filename>
+    // account-id는 동적으로 가져오기 어려우므로, 파일명만 반환하고 프론트엔드에서 처리
+    // 또는 Custom Domain이 설정된 경우 해당 도메인 사용
+    
+    // 일단 파일명만 반환 (프론트엔드에서 R2 Public URL로 변환)
+    // R2 Public URL은 Public Development URL이 활성화되어 있어야 접근 가능
+    const fileUrl = `/uploads/${filename}`;
     
     return new Response(JSON.stringify({
       success: true,

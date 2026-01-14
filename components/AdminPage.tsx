@@ -290,6 +290,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !editingItem) return;
 
+    // 로컬에서는 로컬 서버, Cloudflare Pages에서는 Functions API 사용
     const backendUrl = getArchiveBackendUrl();
     const apiUrl = backendUrl ? `${backendUrl}/api/upload` : '/api/upload';
 
@@ -730,40 +731,13 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                     >
                       파일 업로드 (여러 개 선택 가능)
-                      {!getArchiveBackendUrl() && (
-                        <span className="ml-2 text-yellow-400 text-xs">
-                          (로컬에서만 가능)
-                        </span>
-                      )}
                     </label>
-                    {!getArchiveBackendUrl() && (
-                      <div className="mb-2 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
-                        <p 
-                          className="text-xs text-yellow-400 mb-1"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          ⚠️ Cloudflare Pages에서는 파일 업로드가 불가능합니다.
-                        </p>
-                        <p 
-                          className="text-xs text-yellow-300/80"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          로컬 개발 환경(localhost)에서만 파일 업로드가 가능합니다.
-                        </p>
-                        <p 
-                          className="text-xs text-yellow-300/80 mt-1"
-                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                        >
-                          또는 외부 이미지 URL을 직접 입력하세요.
-                        </p>
-                      </div>
-                    )}
                     <input
                       type="file"
                       multiple
                       accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
                       onChange={handleFileUpload}
-                      disabled={uploading || !getArchiveBackendUrl()}
+                      disabled={uploading}
                       className="block w-full text-sm text-gray-400
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-lg file:border-0
@@ -848,9 +822,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         💡 클릭 시 새 탭에서 열립니다.
                       </p>
                     )}
-                    {!getArchiveBackendUrl() && editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
+                    {editingItem.type !== 'youtube' && editingItem.type !== 'website' && editingItem.type !== 'text' && (
                       <p className="text-xs text-gray-500 mt-1">
-                        💡 로컬에서 업로드한 파일은 <code className="text-gray-400">/uploads/파일명</code> 형식으로 입력하세요.
+                        💡 파일을 업로드하거나 외부 URL을 입력하세요. R2가 설정되어 있으면 바로 업로드 가능합니다.
                       </p>
                     )}
                   </div>

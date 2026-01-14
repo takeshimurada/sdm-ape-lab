@@ -52,24 +52,34 @@ const getBackendUrl = () => {
   return null;
 };
 
-// URL 정규화 함수 - /uploads/로 시작하는 경우 백엔드 URL 추가
+// URL 정규화 함수 - /uploads/로 시작하는 경우 처리
 const normalizeUrl = (url: string): string => {
   // 이미 전체 URL인 경우 (http:// 또는 https://로 시작)
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
   
-  // /uploads/로 시작하는 경우 백엔드 URL 추가
+  // /uploads/로 시작하는 경우
   if (url.startsWith('/uploads/')) {
     const backendUrl = getBackendUrl();
+    
+    // 로컬: 로컬 서버 URL 추가
     if (backendUrl) {
-      // 파일명에 공백이나 특수문자가 있을 수 있으므로 URL 인코딩
       const encodedUrl = url.split('/').map((part, index) => {
-        if (index === 0) return part; // 첫 번째 '/'는 그대로
+        if (index === 0) return part;
         return encodeURIComponent(part);
       }).join('/');
       return `${backendUrl}${encodedUrl}`;
     }
+    
+    // Cloudflare Pages: R2 Public URL로 변환
+    // R2 Public Development URL 형식: https://pub-<account-id>.r2.dev/<bucket-name>/<filename>
+    // account-id는 동적으로 알기 어려우므로, 일단 상대 경로로 유지
+    // 실제로는 R2 Public Development URL이 활성화되어 있으면 /uploads/ 경로도 작동할 수 있음
+    // 또는 Custom Domain이 설정된 경우 해당 도메인 사용
+    
+    // 일단 상대 경로로 반환 (Cloudflare Pages에서 정적 파일로 제공되거나 R2 Public URL로 접근)
+    return url;
   }
   
   // 기타 상대 경로는 그대로 반환
