@@ -41,16 +41,9 @@ const getYouTubeThumbnail = (url: string): string => {
 // 백엔드 URL 헬퍼 함수
 // 방명록은 항상 Cloudflare Pages KV 사용 (하나의 DB)
 const getBackendUrl = () => {
-  // Cloudflare Pages URL (KV 사용)
-  const cloudflarePagesUrl = 'https://88a85538.sdm-ape-lab.pages.dev';
-  
-  const hostname = window.location.hostname;
-  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-  const isSandbox = hostname.includes('sandbox.novita.ai');
-  
-  // 방명록 관련 API는 항상 Cloudflare Pages 사용
-  // Archive는 로컬에서 작업할 수 있도록 로컬 서버 사용
-  return cloudflarePagesUrl;
+  // 현재 origin 사용 (CORS 문제 방지)
+  // Cloudflare Pages에서는 같은 origin이므로 상대 경로도 가능
+  return '';
 };
 
 // Archive용 백엔드 URL (로컬 개발 지원)

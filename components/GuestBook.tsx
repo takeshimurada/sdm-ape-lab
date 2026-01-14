@@ -53,8 +53,11 @@ const GuestBook: React.FC = () => {
 
   // 항상 Cloudflare Pages KV 사용 (하나의 DB)
   const getBackendUrl = () => {
-    // Cloudflare Pages URL (KV 사용)
-    return 'https://88a85538.sdm-ape-lab.pages.dev';
+    // 현재 origin 사용 (CORS 문제 방지)
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return '';
   };
 
   // Load entries
