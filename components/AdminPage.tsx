@@ -138,8 +138,15 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       if (res.ok) {
         await loadGuestbookData();
         setEditingEntry(null);
-        setMessage('✅ 방명록이 수정되었습니다.');
-        setTimeout(() => setMessage(''), 3000);
+        const backendUrl = getBackendUrl();
+        if (backendUrl) {
+          // 로컬 환경: Git 커밋 안내
+          setMessage('✅ 방명록이 수정되었습니다! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/guestbook-data.json\n2. git commit -m "Update guestbook"\n3. git push origin main');
+          setTimeout(() => setMessage(''), 8000);
+        } else {
+          setMessage('✅ 방명록이 수정되었습니다.');
+          setTimeout(() => setMessage(''), 3000);
+        }
       } else {
         throw new Error('수정 실패');
       }
@@ -163,8 +170,15 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       
       if (res.ok) {
         await loadGuestbookData();
-        setMessage('🗑️ 방명록이 삭제되었습니다.');
-        setTimeout(() => setMessage(''), 3000);
+        const backendUrl = getBackendUrl();
+        if (backendUrl) {
+          // 로컬 환경: Git 커밋 안내
+          setMessage('🗑️ 방명록이 삭제되었습니다! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/guestbook-data.json\n2. git commit -m "Update guestbook"\n3. git push origin main');
+          setTimeout(() => setMessage(''), 8000);
+        } else {
+          setMessage('🗑️ 방명록이 삭제되었습니다.');
+          setTimeout(() => setMessage(''), 3000);
+        }
       } else {
         throw new Error('삭제 실패');
       }
@@ -188,10 +202,30 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       });
 
       if (res.ok) {
-        setMessage('✅ 저장 완료! 바로 반영되었습니다.');
-        setTimeout(() => setMessage(''), 3000);
+        const backendUrl = getBackendUrl();
+        if (backendUrl) {
+          // 로컬 환경: Git 커밋 안내
+          setMessage('✅ 저장 완료! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/archive-data.json\n2. git commit -m "Update archive"\n3. git push origin main');
+          setTimeout(() => setMessage(''), 8000);
+        } else {
+          // Cloudflare Pages: KV 사용 또는 정적 파일
+          const result = await res.json().catch(() => ({}));
+          if (result.error && result.error.includes('KV가 설정되지 않았습니다')) {
+            setMessage('⚠️ KV가 설정되지 않았습니다. 로컬에서 저장 후 Git에 커밋하세요.');
+            setTimeout(() => setMessage(''), 8000);
+          } else {
+            setMessage('✅ 저장 완료! 바로 반영되었습니다.');
+            setTimeout(() => setMessage(''), 3000);
+          }
+        }
       } else {
-        throw new Error('저장 실패');
+        const errorData = await res.json().catch(() => ({ error: '저장 실패' }));
+        if (errorData.error && errorData.error.includes('KV가 설정되지 않았습니다')) {
+          setMessage(`⚠️ ${errorData.error}\n\n${errorData.warning || ''}\n\n로컬에서 저장 후 Git에 커밋하세요.`);
+          setTimeout(() => setMessage(''), 10000);
+        } else {
+          throw new Error('저장 실패');
+        }
       }
     } catch (err) {
       console.error('Save error:', err);

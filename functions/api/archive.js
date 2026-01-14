@@ -58,11 +58,14 @@ export async function onRequestPost(context) {
     const kv = context.env.ARCHIVE_KV;
     
     if (!kv) {
+      // KV가 없으면 정적 파일을 업데이트할 수 없으므로 에러 반환
+      // 하지만 사용자에게는 로컬에서 Git 커밋하도록 안내
       return new Response(JSON.stringify({ 
-        error: 'KV가 설정되지 않았습니다. Cloudflare Dashboard에서 ARCHIVE_KV를 설정해주세요.',
-        warning: '현재는 정적 파일만 사용 가능합니다. Git으로 archive-data.json을 수정하고 배포하세요.'
+        error: 'KV가 설정되지 않았습니다.',
+        message: 'Cloudflare Pages에서는 KV 없이 데이터를 저장할 수 없습니다.',
+        instruction: '로컬 개발 환경에서 데이터를 저장한 후 Git에 커밋하고 배포하세요:\n1. 로컬에서 npm run dev:full 실행\n2. 관리자 페이지에서 데이터 저장\n3. git add public/archive-data.json\n4. git commit -m "Update archive"\n5. git push origin main'
       }), {
-        status: 500,
+        status: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
