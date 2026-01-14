@@ -24,36 +24,22 @@ const ArchiveGrid: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [selectedItem, setSelectedItem] = React.useState<ArchiveItem | null>(null);
 
-  // JSON 파일에서 데이터 로드
+  // Archive 데이터 로드 (항상 Cloudflare Pages KV 사용)
   React.useEffect(() => {
     console.log('🔄 Loading archive data...');
     
-    // 백엔드 서버 URL 결정
+    // 항상 Cloudflare Pages KV 사용 (로컬과 Cloudflare 동기화)
     const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost';
-    const isSandbox = hostname.includes('sandbox.novita.ai');
-    const isCloudflare = hostname.includes('pages.dev');
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
     
-    let apiUrl: string;
-    
-    if (isLocalhost) {
-      // 로컬 개발: 백엔드 서버 직접 연결
-      apiUrl = 'http://localhost:3001/api/archive';
-    } else if (isSandbox) {
-      // Sandbox: HTTPS 백엔드
-      const backendUrl = window.location.origin.replace(/\d{4}-/, '3001-');
-      apiUrl = `${backendUrl}/api/archive`;
-    } else if (isCloudflare) {
-      // Cloudflare Pages: Functions API 사용 (KV)
-      apiUrl = '/api/archive';
-    } else {
-      // 기타: Functions API 사용
-      apiUrl = '/api/archive';
-    }
+    // 항상 Functions 경로를 사용하되, 로컬에서는 프록시를 통해 접근
+    const apiUrl: string = isLocalhost
+      ? '/api/archive'
+      : '/api/archive';
     
     console.log('🌐 Fetching from:', apiUrl);
     console.log('📍 Current origin:', window.location.origin);
-    console.log('🏷️ Environment:', { isLocalhost, isSandbox, isCloudflare });
+    console.log('🏷️ Environment:', { isLocalhost });
     
     fetch(apiUrl, {
       method: 'GET',
@@ -79,7 +65,10 @@ const ArchiveGrid: React.FC = () => {
         console.log('✅ Archive data loaded:', data);
         console.log('📊 Number of items:', data.length);
         console.log('🔍 First item:', data[0]);
-        setItems(data);
+
+        // id 기준 내림차순 정렬(최근 항목이 위로)
+        const sorted = [...data].sort((a: ArchiveItem, b: ArchiveItem) => b.id - a.id);
+        setItems(sorted);
         setLoading(false);
       })
       .catch(err => {
@@ -143,7 +132,7 @@ const ArchiveGrid: React.FC = () => {
     <>
       <div className="w-full min-h-screen bg-black text-white">
         {/* Container - 더 넓고 여백 없이 */}
-        <div className="w-full px-4 md:px-8 pt-24 pb-12">
+        <div className="w-full px-4 md:px-8 pt-32 pb-12">
           {/* Archive List - 헤더 제거, 바로 시작 */}
           <motion.div
             initial={{ opacity: 0 }}

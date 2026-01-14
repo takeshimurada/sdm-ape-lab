@@ -32,15 +32,57 @@ export async function onRequestGet(context) {
     }
     
     // KV에서 데이터 읽기
-    const data = await kv.get('archive', { type: 'json' });
+    const kvData = await kv.get('archive', { type: 'json' });
     
-    return new Response(JSON.stringify(data || []), {
+    // KV에 데이터가 없으면 정적 파일에서 fallback
+    if (!kvData || kvData.length === 0) {
+      const url = new URL(context.request.url);
+      const baseUrl = `${url.protocol}//${url.host}`;
+      const jsonUrl = `${baseUrl}/archive-data.json`;
+      const response = await fetch(jsonUrl);
+      
+      if (response.ok) {
+        const fallbackData = await response.json();
+        // KV에 자동으로 저장 (다음부터는 KV 사용)
+        if (fallbackData && fallbackData.length > 0) {
+          await kv.put('archive', JSON.stringify(fallbackData));
+          return new Response(JSON.stringify(fallbackData), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          });
+        }
+      }
+    }
+    
+    return new Response(JSON.stringify(kvData || []), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (error) {
+    // 에러 발생 시에도 정적 파일에서 fallback 시도
+    try {
+      const url = new URL(context.request.url);
+      const baseUrl = `${url.protocol}//${url.host}`;
+      const jsonUrl = `${baseUrl}/archive-data.json`;
+      const response = await fetch(jsonUrl);
+      
+      if (response.ok) {
+        const fallbackData = await response.json();
+        return new Response(JSON.stringify(fallbackData), {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+    } catch (fallbackError) {
+      // fallback도 실패하면 빈 배열 반환
+    }
+    
     return new Response(JSON.stringify([]), {
       headers: {
         'Content-Type': 'application/json',
