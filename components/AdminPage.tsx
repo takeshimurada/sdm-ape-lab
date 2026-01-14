@@ -288,67 +288,75 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
-  // 📤 파일 업로드 (이미지/비디오)
+  // 📤 파일 업로드 (이미지/비디오) - 여러 파일 지원
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingItem) return;
+    const files = e.target.files;
+    if (!files || files.length === 0 || !editingItem) return;
 
     const backendUrl = getArchiveBackendUrl();
     const apiUrl = backendUrl ? `${backendUrl}/api/upload` : '/api/upload';
 
     setUploading(true);
-    setMessage('📤 파일 업로드 중...');
-
-    console.log('📤 Starting upload:', file.name);
+    setMessage(`📤 ${files.length}개 파일 업로드 중...`);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const uploadedUrls: string[] = [];
+      const mediaArray: Array<{ type: 'image' | 'video'; url: string }> = [];
 
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-      });
+      // 여러 파일 순차 업로드
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`📤 Uploading ${i + 1}/${files.length}:`, file.name);
 
-      console.log('📡 Upload response status:', res.status);
+        const formData = new FormData();
+        formData.append('file', file);
 
-      if (res.ok) {
-        const result = await res.json();
-        console.log('✅ Upload result:', result);
-        
-        // R2를 사용하는 경우 URL 처리
-        let fileUrl = result.url;
-        if (!backendUrl && result.url.startsWith('/uploads/')) {
-          // Cloudflare Pages에서 R2 사용 시
-          // R2 Public Development URL 형식으로 변환 필요
-          // 형식: https://pub-<account-id>.r2.dev/sdm-ape-lab-uploads/<filename>
-          // 일단 상대 경로로 저장 (나중에 R2 Public URL로 변환)
-          // 또는 R2 Public Development URL이 활성화되어 있다면 직접 사용 가능
-          fileUrl = result.url;
-        }
-        
-        setEditingItem({ ...editingItem, url: fileUrl });
-        setMessage(`✅ 업로드 완료: ${result.originalName}`);
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        const errorData = await res.json().catch(() => ({ error: '업로드 실패' }));
-        console.error('❌ Upload failed:', errorData);
-        
-        // Cloudflare Pages에서 업로드 불가 안내
-        if (errorData.error && errorData.error.includes('Cloudflare Pages')) {
-          setMessage(`⚠️ ${errorData.message || errorData.error}\n\n${errorData.instruction || ''}`);
-          setTimeout(() => setMessage(''), 10000);
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          console.log('✅ Upload result:', result);
+          
+          let fileUrl = result.url;
+          if (!backendUrl && result.url.startsWith('/uploads/')) {
+            fileUrl = result.url;
+          }
+          
+          uploadedUrls.push(fileUrl);
+          
+          // 미디어 타입 결정
+          const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+          mediaArray.push({ type: mediaType, url: fileUrl });
         } else {
-          setMessage(`❌ 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
-          setTimeout(() => setMessage(''), 5000);
+          const errorData = await res.json().catch(() => ({ error: '업로드 실패' }));
+          console.error(`❌ Upload failed for ${file.name}:`, errorData);
+          throw new Error(`${file.name} 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
         }
       }
+
+      // 첫 번째 파일을 메인 URL로, 나머지는 media 배열에
+      const mainUrl = uploadedUrls[0];
+      const additionalMedia = uploadedUrls.slice(1).map((url, idx) => mediaArray[idx + 1]);
+
+      setEditingItem({ 
+        ...editingItem, 
+        url: mainUrl,
+        media: [...(editingItem.media || []), ...additionalMedia]
+      });
+      
+      setMessage(`✅ ${files.length}개 파일 업로드 완료!`);
+      setTimeout(() => setMessage(''), 3000);
     } catch (err) {
       console.error('Upload error:', err);
       setMessage('❌ 업로드 중 오류가 발생했습니다: ' + (err as Error).message);
       setTimeout(() => setMessage(''), 5000);
     } finally {
       setUploading(false);
+      // input 초기화 (같은 파일 다시 선택 가능하도록)
+      e.target.value = '';
     }
   };
 
@@ -706,24 +714,32 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                       />
                       🌐 웹사이트
                     </label>
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={editingItem.type === 'text'}
+                        onChange={() => setEditingItem({ ...editingItem, type: 'text' })}
+                      />
+                      📝 텍스트
+                    </label>
                   </div>
                 </div>
 
-                {/* File Upload - Only for image/video */}
-                {editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
+                {/* File Upload - Only for image/video (not text) */}
+                {editingItem.type !== 'youtube' && editingItem.type !== 'website' && editingItem.type !== 'text' && (
                   <div className="mb-4">
                     <label 
                       className="block text-gray-400 text-sm mb-2"
                       style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                     >
-                      파일 업로드
-                      {!getBackendUrl() && (
+                      파일 업로드 (여러 개 선택 가능)
+                      {!getArchiveBackendUrl() && (
                         <span className="ml-2 text-yellow-400 text-xs">
                           (로컬에서만 가능)
                         </span>
                       )}
                     </label>
-                    {!getBackendUrl() && (
+                    {!getArchiveBackendUrl() && (
                       <div className="mb-2 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
                         <p 
                           className="text-xs text-yellow-400 mb-1"
@@ -747,9 +763,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     )}
                     <input
                       type="file"
+                      multiple
                       accept={editingItem.type === 'video' ? 'video/*' : 'image/*'}
                       onChange={handleFileUpload}
-                      disabled={uploading || !getBackendUrl()}
+                      disabled={uploading || !getArchiveBackendUrl()}
                       className="block w-full text-sm text-gray-400
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-lg file:border-0
@@ -767,45 +784,53 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         ⏳ 업로드 중...
                       </p>
                     )}
+                    {editingItem.media && editingItem.media.length > 0 && (
+                      <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-gray-400">
+                        업로드된 파일: {editingItem.media.length + 1}개
+                        (첫 번째 파일이 메인, 나머지는 추가 미디어)
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* URL */}
-                <div className="mb-4">
-                  <label 
-                    className="block text-gray-400 text-sm mb-2"
-                    style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-                  >
-                    {editingItem.type === 'youtube' 
-                      ? 'YouTube URL (필수)' 
-                      : editingItem.type === 'website'
-                      ? '웹사이트 URL (필수)'
-                      : '또는 URL 직접 입력'}
-                  </label>
-                  <input
-                    type="text"
-                    value={editingItem.url}
-                    onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
-                    placeholder={
-                      editingItem.type === 'youtube' 
-                        ? 'https://www.youtube.com/watch?v=...' 
+                {/* URL - 텍스트 타입이 아닐 때만 표시 */}
+                {editingItem.type !== 'text' && (
+                  <div className="mb-4">
+                    <label 
+                      className="block text-gray-400 text-sm mb-2"
+                      style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                    >
+                      {editingItem.type === 'youtube' 
+                        ? 'YouTube URL (필수)' 
                         : editingItem.type === 'website'
-                        ? 'https://earth.google.com/web/'
-                        : 'https://example.com/image.jpg'
-                    }
-                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
-                  />
-                  {editingItem.type === 'youtube' && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID
-                    </p>
-                  )}
-                  {editingItem.type === 'website' && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      💡 클릭 시 새 탭에서 열립니다.
-                    </p>
-                  )}
-                </div>
+                        ? '웹사이트 URL (필수)'
+                        : '또는 URL 직접 입력'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editingItem.url}
+                      onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
+                      placeholder={
+                        editingItem.type === 'youtube' 
+                          ? 'https://www.youtube.com/watch?v=...' 
+                          : editingItem.type === 'website'
+                          ? 'https://earth.google.com/web/'
+                          : 'https://example.com/image.jpg'
+                      }
+                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
+                    />
+                    {editingItem.type === 'youtube' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 YouTube URL 예시: https://www.youtube.com/watch?v=VIDEO_ID
+                      </p>
+                    )}
+                    {editingItem.type === 'website' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 클릭 시 새 탭에서 열립니다.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* URL Preview */}
                 {editingItem.url && (
@@ -820,8 +845,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                   </div>
                 )}
 
-                {/* Validation Warning */}
-                {!editingItem.url && (
+                {/* Validation Warning - 텍스트 타입이 아닐 때만 */}
+                {editingItem.type !== 'text' && !editingItem.url && (
                   <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
                     <p 
                       className="text-sm text-yellow-400"
