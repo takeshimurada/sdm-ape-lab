@@ -65,5 +65,33 @@
     "year": "2026",
     "description": "",
     "content": ""
+  },
+  {
+    "id": 12,
+    "type": "image",
+    "url": "/uploads/1768372342762-스크린샷 2026-01-07 155544.png",
+    "media": [
+      {
+        "type": "image",
+        "url": "/uploads/1768372342780-스크린샷 2026-01-07 155553.png"
+      },
+      {
+        "type": "image",
+        "url": "/uploads/1768372342793-스크린샷 2026-01-07 155600.png"
+      },
+      {
+        "type": "image",
+        "url": "/uploads/1768372342806-스크린샷 2026-01-07 155605.png"
+      },
+      {
+        "type": "image",
+        "url": "/uploads/1768372342814-스크린샷 2026-01-07 155615.png"
+      }
+    ],
+    "title": "eee",
+    "tags": [],
+    "year": "2026",
+    "description": "",
+    "content": ""
   }
 ]

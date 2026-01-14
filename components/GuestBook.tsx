@@ -53,10 +53,16 @@ const GuestBook: React.FC = () => {
 
   // 항상 Cloudflare Pages KV 사용 (하나의 DB)
   const getBackendUrl = () => {
-    // 현재 origin 사용 (CORS 문제 방지)
-    if (typeof window !== 'undefined') {
-      return window.location.origin;
+    // 로컬에서도 Cloudflare Pages API 사용 (KV 동기화)
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    if (isLocalhost) {
+      // 로컬에서도 Cloudflare Pages API 사용
+      return 'https://88a85538.sdm-ape-lab.pages.dev';
     }
+    
+    // Cloudflare Pages에서는 상대 경로 사용
     return '';
   };
 
