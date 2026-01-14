@@ -14,6 +14,7 @@ const GuestBook: React.FC = () => {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | null; text: string }>({ type: null, text: '' });
 
   // Get user's language
   const getUserLanguage = () => {
@@ -103,11 +104,13 @@ const GuestBook: React.FC = () => {
     e.preventDefault();
     
     if (!name.trim() || !message.trim()) {
-      alert('이름과 메시지를 모두 입력해주세요.');
+      setStatusMessage({ type: 'error', text: 'communication Failed' });
+      setTimeout(() => setStatusMessage({ type: null, text: '' }), 3000);
       return;
     }
 
     setSubmitting(true);
+    setStatusMessage({ type: null, text: '' });
 
     try {
       const backendUrl = getBackendUrl();
@@ -132,13 +135,18 @@ const GuestBook: React.FC = () => {
       setName('');
       setMessage('');
       
+      // Show success message
+      setStatusMessage({ type: 'success', text: 'communication success' });
+      
       // Reload entries
       await loadEntries();
       
-      alert('✅ 방명록에 글이 등록되었습니다!');
+      // Clear message after 3 seconds
+      setTimeout(() => setStatusMessage({ type: null, text: '' }), 3000);
     } catch (error) {
       console.error('❌ Failed to submit:', error);
-      alert('❌ 등록에 실패했습니다. 다시 시도해주세요.');
+      setStatusMessage({ type: 'error', text: 'communication Failed' });
+      setTimeout(() => setStatusMessage({ type: null, text: '' }), 3000);
     } finally {
       setSubmitting(false);
     }
@@ -197,6 +205,24 @@ const GuestBook: React.FC = () => {
                 disabled={submitting}
               />
             </div>
+
+            {/* Status Message */}
+            <AnimatePresence>
+              {statusMessage.type && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className={`px-4 py-3 border text-xs tracking-widest uppercase text-center ${
+                    statusMessage.type === 'success'
+                      ? 'border-green-500/50 text-green-400 bg-green-500/10'
+                      : 'border-red-500/50 text-red-400 bg-red-500/10'
+                  }`}
+                >
+                  {statusMessage.text}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <button
               type="submit"
