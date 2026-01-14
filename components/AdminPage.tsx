@@ -801,8 +801,30 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         ? 'YouTube URL (필수)' 
                         : editingItem.type === 'website'
                         ? '웹사이트 URL (필수)'
-                        : '또는 URL 직접 입력'}
+                        : 'URL 입력'}
                     </label>
+                    {!getArchiveBackendUrl() && editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
+                      <div className="mb-2 p-3 bg-blue-900/30 border border-blue-500/30 rounded-lg">
+                        <p 
+                          className="text-xs text-blue-300 mb-1"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          💡 Cloudflare Pages에서는 파일 업로드가 불가능합니다.
+                        </p>
+                        <p 
+                          className="text-xs text-blue-200/80"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          <strong>방법 1:</strong> 로컬에서 파일 업로드 후 Git 커밋 → <code className="text-blue-300">/uploads/파일명</code> 형식으로 입력
+                        </p>
+                        <p 
+                          className="text-xs text-blue-200/80 mt-1"
+                          style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+                        >
+                          <strong>방법 2:</strong> 외부 이미지/비디오 URL 직접 입력 (예: <code className="text-blue-300">https://example.com/image.jpg</code>)
+                        </p>
+                      </div>
+                    )}
                     <input
                       type="text"
                       value={editingItem.url}
@@ -812,7 +834,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                           ? 'https://www.youtube.com/watch?v=...' 
                           : editingItem.type === 'website'
                           ? 'https://earth.google.com/web/'
-                          : 'https://example.com/image.jpg'
+                          : '/uploads/파일명.png 또는 https://example.com/image.jpg'
                       }
                       className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
                     />
@@ -824,6 +846,11 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     {editingItem.type === 'website' && (
                       <p className="text-xs text-gray-500 mt-1">
                         💡 클릭 시 새 탭에서 열립니다.
+                      </p>
+                    )}
+                    {!getArchiveBackendUrl() && editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 로컬에서 업로드한 파일은 <code className="text-gray-400">/uploads/파일명</code> 형식으로 입력하세요.
                       </p>
                     )}
                   </div>

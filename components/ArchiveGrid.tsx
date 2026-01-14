@@ -44,11 +44,11 @@ const ArchiveGrid: React.FC = () => {
       const backendUrl = window.location.origin.replace(/\d{4}-/, '3001-');
       apiUrl = `${backendUrl}/api/archive`;
     } else if (isCloudflare) {
-      // Cloudflare Pages: 정적 JSON 파일 사용
-      apiUrl = '/archive-data.json';
+      // Cloudflare Pages: Functions API 사용 (KV)
+      apiUrl = '/api/archive';
     } else {
-      // 기타: 정적 JSON 파일 사용
-      apiUrl = '/archive-data.json';
+      // 기타: Functions API 사용
+      apiUrl = '/api/archive';
     }
     
     console.log('🌐 Fetching from:', apiUrl);
