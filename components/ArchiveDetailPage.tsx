@@ -38,6 +38,44 @@ const getYouTubeEmbedUrl = (url: string): string => {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
 };
 
+// 백엔드 URL 헬퍼 함수
+const getBackendUrl = () => {
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost';
+  const isSandbox = hostname.includes('sandbox.novita.ai');
+  
+  if (isLocalhost) {
+    return 'http://localhost:3001';
+  } else if (isSandbox) {
+    return window.location.origin.replace(/\d{4}-/, '3001-');
+  }
+  return null;
+};
+
+// URL 정규화 함수 - /uploads/로 시작하는 경우 백엔드 URL 추가
+const normalizeUrl = (url: string): string => {
+  // 이미 전체 URL인 경우 (http:// 또는 https://로 시작)
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // /uploads/로 시작하는 경우 백엔드 URL 추가
+  if (url.startsWith('/uploads/')) {
+    const backendUrl = getBackendUrl();
+    if (backendUrl) {
+      // 파일명에 공백이나 특수문자가 있을 수 있으므로 URL 인코딩
+      const encodedUrl = url.split('/').map((part, index) => {
+        if (index === 0) return part; // 첫 번째 '/'는 그대로
+        return encodeURIComponent(part);
+      }).join('/');
+      return `${backendUrl}${encodedUrl}`;
+    }
+  }
+  
+  // 기타 상대 경로는 그대로 반환
+  return url;
+};
+
 // 미디어 렌더러
 const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({ type, url, title }) => {
   if (type === 'youtube') {
@@ -56,13 +94,14 @@ const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({
   }
   
   if (type === 'video') {
+    const normalizedUrl = normalizeUrl(url);
     return (
       <div className="w-full mb-8">
         <video
-          src={url}
+          src={normalizedUrl}
           controls
           className="w-full rounded-sm bg-black"
-          style={{ maxHeight: '70vh' }}
+          style={{ maxHeight: '85vh' }}
         >
           Your browser does not support the video tag.
         </video>
@@ -71,13 +110,14 @@ const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({
   }
   
   if (type === 'image') {
+    const normalizedUrl = normalizeUrl(url);
     return (
       <div className="w-full mb-8">
         <img
-          src={url}
+          src={normalizedUrl}
           alt={title}
           className="w-full rounded-sm"
-          style={{ maxHeight: '80vh', objectFit: 'contain' }}
+          style={{ maxHeight: '90vh', objectFit: 'contain' }}
         />
       </div>
     );
@@ -111,21 +151,13 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
       className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
     >
-      <div 
-        className="min-h-screen py-12 px-4 md:px-8"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 닫기 버튼 */}
-        <button
-          onClick={onClose}
-          className="fixed top-6 right-6 text-white/40 hover:text-white/80 transition-colors text-2xl z-10"
-          aria-label="Close"
+      {/* 배경 클릭 영역 */}
+      <div className="min-h-screen py-12 px-4 md:px-8 flex items-start justify-center">
+        {/* 블로그 콘텐츠 - 더 큰 너비로 확장, 클릭 이벤트 전파 방지 */}
+        <article 
+          className="w-full max-w-6xl mx-auto"
+          onClick={(e) => e.stopPropagation()}
         >
-          ✕
-        </button>
-
-        {/* 블로그 콘텐츠 */}
-        <article className="max-w-3xl mx-auto">
           {/* 헤더 - 타이틀 크기 줄임 */}
           <header className="mb-12">
             <motion.div

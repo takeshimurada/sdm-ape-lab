@@ -53,7 +53,7 @@
    npm run dev:full
    
    # 또는
-   ./start-dev.sh
+   ./scripts/start-dev.sh
    ```
    
    **📱 Frontend Only Mode:**
@@ -62,7 +62,7 @@
    ```
 
 4. **Open your browser:**
-   - 브라우저에서 `http://localhost:3000` 접속 (또는 표시된 포트)
+   - 브라우저에서 `http://localhost:5173` 접속
 
 ## 🏗️ Build for Production
 
@@ -87,15 +87,30 @@ npm run preview
 
 ```
 sdm-ape-lab/
-├── components/           # React 컴포넌트들
-│   ├── Navbar.tsx       # 네비게이션 바
-│   ├── AboutPage.tsx    # About 페이지
-│   ├── ArchiveGrid.tsx  # Archive 그리드
+├── components/              # React 컴포넌트들
+│   ├── Navbar.tsx          # 네비게이션 바
+│   ├── AboutPage.tsx       # About 페이지
+│   ├── ArchiveGrid.tsx     # Archive 그리드
+│   ├── ArchiveDetailPage.tsx  # Archive 상세 페이지
+│   ├── AdminPage.tsx       # 관리자 페이지
+│   ├── GuestBook.tsx       # 방명록
 │   └── CustomModelLoader.tsx  # 3D 모델 로더
-├── App.tsx              # 메인 앱 컴포넌트
-├── constants.ts         # 상수 정의
-├── face.glb            # 3D 모델 파일
-└── index.html          # HTML 엔트리포인트
+├── docs/                   # 문서 가이드
+│   ├── ADMIN_GUIDE.md      # 관리자 가이드
+│   ├── PREVIEW_GUIDE.md    # 프리뷰 가이드
+│   ├── DEPLOYMENT_GUIDE.md # 배포 가이드
+│   └── ...
+├── scripts/                # 스크립트 파일
+│   ├── start-dev.sh        # 개발 서버 시작
+│   └── deploy.sh          # 배포 스크립트
+├── public/                 # 정적 파일
+│   ├── archive-data.json   # Archive 데이터
+│   ├── guestbook-data.json # 방명록 데이터
+│   └── uploads/           # 업로드된 파일
+├── functions/              # Cloudflare Functions
+├── App.tsx                 # 메인 앱 컴포넌트
+├── server.js               # 백엔드 서버
+└── index.html             # HTML 엔트리포인트
 ```
 
 ## 🎯 Performance Optimizations
@@ -131,8 +146,11 @@ sdm-ape-lab/
 - **비디오**: MP4, WebM, QuickTime
 
 ### 📖 상세 가이드:
-- [실시간 업데이트 가이드](./REALTIME_ADMIN_GUIDE.md) ⭐ **NEW!**
-- [기본 관리자 가이드](./ADMIN_GUIDE.md)
+- [관리자 페이지 가이드](./docs/ADMIN_GUIDE.md)
+- [프리뷰 가이드](./docs/PREVIEW_GUIDE.md)
+- [서버 재시작 가이드](./docs/SERVER_RESTART_GUIDE.md)
+- [배포 가이드](./docs/DEPLOYMENT_GUIDE.md)
+- [버전 복원 가이드](./docs/VERSION_RESTORE.md)
 
 ## 📝 License
 
@@ -142,5 +160,3 @@ This project is part of SDM APE LAB research initiative.
 
 - Email: kitschkitschyayajjajja@gmail.com
 - Instagram: [@sdm.ape.lab](https://www.instagram.com/sdm.ape.lab)
-# Force rebuild Mon Jan 12 11:23:57 UTC 2026
-# Force rebuild Mon Jan 12 12:57:30 UTC 2026

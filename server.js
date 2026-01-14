@@ -16,6 +16,9 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+// 정적 파일 서빙 - 업로드된 파일 접근 가능하도록
+app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
+
 // 파일 업로드 설정
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
@@ -229,15 +232,96 @@ app.post('/api/guestbook', async (req, res) => {
   }
 });
 
+// ✏️ Guestbook 엔트리 수정
+app.put('/api/guestbook/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, message } = req.body;
+    
+    // 데이터 검증
+    if (!name || !message) {
+      return res.status(400).json({ error: '이름과 메시지가 필요합니다.' });
+    }
+    
+    if (name.length > 50 || message.length > 500) {
+      return res.status(400).json({ error: '입력 제한을 초과했습니다.' });
+    }
+    
+    // 기존 데이터 읽기
+    let entries = [];
+    try {
+      const data = await fs.readFile(GUESTBOOK_DATA_PATH, 'utf-8');
+      entries = JSON.parse(data);
+    } catch (error) {
+      return res.status(404).json({ error: '방명록 데이터를 찾을 수 없습니다.' });
+    }
+    
+    // 엔트리 찾기
+    const entryIndex = entries.findIndex(e => e.id === parseInt(id));
+    if (entryIndex === -1) {
+      return res.status(404).json({ error: '엔트리를 찾을 수 없습니다.' });
+    }
+    
+    // 엔트리 수정
+    entries[entryIndex] = {
+      ...entries[entryIndex],
+      name: name.trim(),
+      message: message.trim(),
+    };
+    
+    // JSON 파일로 저장
+    await fs.writeFile(
+      GUESTBOOK_DATA_PATH,
+      JSON.stringify(entries, null, 2),
+      'utf-8'
+    );
+    
+    console.log('✅ Guestbook entry updated:', entries[entryIndex]);
+    res.json({ success: true, entry: entries[entryIndex] });
+  } catch (error) {
+    console.error('❌ Guestbook update error:', error);
+    res.status(500).json({ error: '수정 중 오류가 발생했습니다.' });
+  }
+});
+
+// 🗑️ Guestbook 엔트리 삭제
+app.delete('/api/guestbook/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // 기존 데이터 읽기
+    let entries = [];
+    try {
+      const data = await fs.readFile(GUESTBOOK_DATA_PATH, 'utf-8');
+      entries = JSON.parse(data);
+    } catch (error) {
+      return res.status(404).json({ error: '방명록 데이터를 찾을 수 없습니다.' });
+    }
+    
+    // 엔트리 찾기
+    const entryIndex = entries.findIndex(e => e.id === parseInt(id));
+    if (entryIndex === -1) {
+      return res.status(404).json({ error: '엔트리를 찾을 수 없습니다.' });
+    }
+    
+    // 엔트리 삭제
+    const deletedEntry = entries.splice(entryIndex, 1)[0];
+    
+    // JSON 파일로 저장
+    await fs.writeFile(
+      GUESTBOOK_DATA_PATH,
+      JSON.stringify(entries, null, 2),
+      'utf-8'
+    );
+    
+    console.log('✅ Guestbook entry deleted:', deletedEntry);
+    res.json({ success: true, message: '삭제되었습니다.' });
+  } catch (error) {
+    console.error('❌ Guestbook delete error:', error);
+    res.status(500).json({ error: '삭제 중 오류가 발생했습니다.' });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`
-╔══════════════════════════════════════════════════╗
-║  🚀 SDM APE LAB - Admin Backend Server          ║
-║  📡 Running on: http://localhost:${PORT}         ║
-║  📁 Archive API: /api/archive                    ║
-║  📖 Guestbook API: /api/guestbook                ║
-║  📤 Upload API: /api/upload                      ║
-║  🗑️  Delete API: /api/upload/:filename           ║
-╚══════════════════════════════════════════════════╝
-  `);
+  console.log(`🚀 SDM APE LAB Backend Server running on http://localhost:${PORT}`);
 });

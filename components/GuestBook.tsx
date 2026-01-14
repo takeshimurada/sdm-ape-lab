@@ -203,7 +203,7 @@ const GuestBook: React.FC = () => {
               disabled={submitting}
               className="px-8 py-3 border border-white/20 text-white/80 hover:bg-white/5 hover:text-white transition-all text-xs tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Submitting...' : 'Submit'}
+              {submitting ? 'Submitting...' : 'communicate'}
             </button>
           </form>
         </motion.div>

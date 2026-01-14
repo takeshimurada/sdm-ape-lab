@@ -23,7 +23,6 @@ const ArchiveGrid: React.FC = () => {
   const [items, setItems] = React.useState<ArchiveItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedItem, setSelectedItem] = React.useState<ArchiveItem | null>(null);
-  const [hoveredId, setHoveredId] = React.useState<number | null>(null);
 
   // JSON 파일에서 데이터 로드
   React.useEffect(() => {
@@ -158,8 +157,6 @@ const ArchiveGrid: React.FC = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
-                onMouseEnter={() => setHoveredId(item.id)}
-                onMouseLeave={() => setHoveredId(null)}
                 onClick={() => handleItemClick(item)}
                 className="group cursor-pointer py-3 px-2 border-b border-white/5 hover:bg-white/3 transition-all"
               >
@@ -171,9 +168,7 @@ const ArchiveGrid: React.FC = () => {
                   
                   {/* Title */}
                   <span 
-                    className={`text-sm md:text-base transition-all duration-150 ${
-                      hoveredId === item.id ? 'text-white' : 'text-white/70'
-                    }`}
+                    className="text-sm md:text-base text-white/70 group-hover:text-white transition-all duration-150"
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(item.title) 
                         ? 'Dotum, "돋움", sans-serif' 
@@ -188,25 +183,6 @@ const ArchiveGrid: React.FC = () => {
                     {item.year}
                   </span>
                 </div>
-
-                {/* Description on hover */}
-                {hoveredId === item.id && item.description && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-2 ml-6 text-xs text-gray-500 overflow-hidden"
-                    style={{ 
-                      fontFamily: /[\u3131-\uD79D]/.test(item.description) 
-                        ? 'Dotum, "돋움", sans-serif' 
-                        : 'system-ui, -apple-system, sans-serif'
-                    }}
-                  >
-                    {item.description.slice(0, 100)}
-                    {item.description.length > 100 && '...'}
-                  </motion.div>
-                )}
               </motion.div>
             ))}
           </motion.div>

@@ -55,17 +55,31 @@ const getBackendUrl = () => {
   }
 };
 
+// Guestbook 엔트리 타입
+interface GuestBookEntry {
+  id: number;
+  name: string;
+  message: string;
+  date: string;
+}
+
 const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
+  const [activeTab, setActiveTab] = useState<'archive' | 'guestbook'>('archive');
   const [items, setItems] = useState<ArchiveItem[]>([]);
   const [editingItem, setEditingItem] = useState<ArchiveItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Guestbook 관련 상태
+  const [guestbookEntries, setGuestbookEntries] = useState<GuestBookEntry[]>([]);
+  const [editingEntry, setEditingEntry] = useState<GuestBookEntry | null>(null);
 
   // 📖 데이터 로드 (API에서)
   useEffect(() => {
     loadData();
+    loadGuestbookData();
   }, []);
 
   const loadData = async () => {
@@ -83,6 +97,70 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     } catch (err) {
       console.error('Failed to load data:', err);
       setMessage('❌ 데이터 로드 실패');
+    }
+  };
+
+  // 📖 방명록 데이터 로드
+  const loadGuestbookData = async () => {
+    try {
+      const backendUrl = getBackendUrl();
+      if (!backendUrl) return;
+      
+      const res = await fetch(`${backendUrl}/api/guestbook`);
+      const data = await res.json();
+      setGuestbookEntries(data);
+    } catch (err) {
+      console.error('Failed to load guestbook data:', err);
+    }
+  };
+
+  // ✏️ 방명록 엔트리 수정
+  const handleGuestbookUpdate = async (entry: GuestBookEntry) => {
+    try {
+      const backendUrl = getBackendUrl();
+      if (!backendUrl) return;
+      
+      const res = await fetch(`${backendUrl}/api/guestbook/${entry.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: entry.name,
+          message: entry.message
+        })
+      });
+      
+      if (res.ok) {
+        await loadGuestbookData();
+        setEditingEntry(null);
+        setMessage('✅ 방명록이 수정되었습니다.');
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to update guestbook:', err);
+      setMessage('❌ 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 🗑️ 방명록 엔트리 삭제
+  const handleGuestbookDelete = async (id: number) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    
+    try {
+      const backendUrl = getBackendUrl();
+      if (!backendUrl) return;
+      
+      const res = await fetch(`${backendUrl}/api/guestbook/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        await loadGuestbookData();
+        setMessage('🗑️ 방명록이 삭제되었습니다.');
+        setTimeout(() => setMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to delete guestbook:', err);
+      setMessage('❌ 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -242,18 +320,48 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             )}
           </AnimatePresence>
 
-          {/* Add Button */}
-          <button
-            onClick={handleAdd}
-            className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors"
-            style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
-          >
-            + 새 프로젝트 추가
-          </button>
+          {/* Tabs */}
+          <div className="flex gap-4 mb-6 border-b border-white/10">
+            <button
+              onClick={() => setActiveTab('archive')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'archive'
+                  ? 'text-white border-b-2 border-pink-500'
+                  : 'text-white/50 hover:text-white/80'
+              }`}
+              style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+            >
+              📁 Archive
+            </button>
+            <button
+              onClick={() => setActiveTab('guestbook')}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                activeTab === 'guestbook'
+                  ? 'text-white border-b-2 border-pink-500'
+                  : 'text-white/50 hover:text-white/80'
+              }`}
+              style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+            >
+              📖 방명록
+            </button>
+          </div>
+
+          {/* Add Button - Archive 탭에서만 표시 */}
+          {activeTab === 'archive' && (
+            <button
+              onClick={handleAdd}
+              className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors mb-6"
+              style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+            >
+              + 새 프로젝트 추가
+            </button>
+          )}
         </div>
 
-        {/* Projects List - Text-based like Jon Rafman */}
+        {/* Archive Tab */}
+        {activeTab === 'archive' && (
         <div className="max-w-6xl mx-auto">
+          {/* Projects List - Text-based like Jon Rafman */}
           <div className="space-y-1">
             {items.map((item) => (
               <motion.div
@@ -306,6 +414,98 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             ))}
           </div>
         </div>
+        )}
+
+        {/* Guestbook Tab */}
+        {activeTab === 'guestbook' && (
+        <div className="max-w-6xl mx-auto">
+          <div className="space-y-4">
+            {guestbookEntries.map((entry) => (
+              <motion.div
+                key={entry.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="group border border-white/10 rounded-lg p-4 hover:bg-gray-900 transition-colors"
+              >
+                {editingEntry?.id === entry.id ? (
+                  // 수정 모드
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-white/60 text-xs mb-2">이름</label>
+                      <input
+                        type="text"
+                        value={editingEntry.name}
+                        onChange={(e) => setEditingEntry({ ...editingEntry, name: e.target.value })}
+                        className="w-full bg-gray-800 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-pink-500"
+                        maxLength={50}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/60 text-xs mb-2">메시지</label>
+                      <textarea
+                        value={editingEntry.message}
+                        onChange={(e) => setEditingEntry({ ...editingEntry, message: e.target.value })}
+                        className="w-full bg-gray-800 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-pink-500 resize-none"
+                        rows={4}
+                        maxLength={500}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleGuestbookUpdate(editingEntry)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                      >
+                        저장
+                      </button>
+                      <button
+                        onClick={() => setEditingEntry(null)}
+                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition-colors"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // 표시 모드
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-baseline gap-3 mb-2">
+                          <span className="text-white font-medium text-sm">{entry.name}</span>
+                          <span className="text-white/30 text-xs">{entry.date}</span>
+                        </div>
+                        <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
+                          {entry.message}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                        <button
+                          onClick={() => setEditingEntry(entry)}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleGuestbookDelete(entry.id)}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+            
+            {guestbookEntries.length === 0 && (
+              <p className="text-center text-white/30 text-sm py-12">
+                방명록이 비어있습니다.
+              </p>
+            )}
+          </div>
+        </div>
+        )}
 
         {/* Edit Modal */}
         <AnimatePresence>

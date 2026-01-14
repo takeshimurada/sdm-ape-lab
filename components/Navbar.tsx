@@ -77,7 +77,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
         )}
 
         <span 
-          style={{ fontFamily: "'Dotum', '돋움', sans-serif" }}
           className="text-xl font-bold tracking-tight text-white transition-all duration-300"
           style={{
             textShadow: isLogoHovered 

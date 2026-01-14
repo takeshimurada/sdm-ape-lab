@@ -1,5 +1,5 @@
 
-import React, { Suspense, useState, useEffect, useMemo, useCallback, Component, ReactNode } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
@@ -250,7 +250,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ 
                         opacity: 1, 
-                        y: 0,
                         // 자연스러운 떠다니는 움직임
                         y: isHoveringBtn ? [-2, -4, -2] : 0,
                         rotate: isHoveringBtn ? [-0.5, 0.5, -0.5] : 0,
