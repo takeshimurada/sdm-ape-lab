@@ -207,13 +207,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     if (!file || !editingItem) return;
 
     const backendUrl = getBackendUrl();
-    
-    // Cloudflare Pages 환경에서는 파일 업로드 불가
-    if (!backendUrl) {
-      setMessage('⚠️ Cloudflare Pages에서는 파일 업로드가 불가능합니다. 이미지 URL을 직접 입력하거나, Cloudflare R2를 설정해주세요.');
-      setTimeout(() => setMessage(''), 5000);
-      return;
-    }
+    const apiUrl = backendUrl ? `${backendUrl}/api/upload` : '/api/upload';
 
     setUploading(true);
     setMessage('📤 파일 업로드 중...');
@@ -224,7 +218,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch(`${backendUrl}/api/upload`, {
+      const res = await fetch(apiUrl, {
         method: 'POST',
         body: formData
       });
@@ -235,17 +229,32 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         const result = await res.json();
         console.log('✅ Upload result:', result);
         
-        setEditingItem({ ...editingItem, url: result.url });
+        // R2를 사용하는 경우 전체 URL 구성 필요
+        let fileUrl = result.url;
+        if (!backendUrl && result.url.startsWith('/uploads/')) {
+          // Cloudflare Pages에서 R2 Public URL 구성
+          // R2 Public Access가 설정되어 있다면 전체 URL 필요
+          // 일단 상대 경로 사용 (나중에 R2 Public URL로 변경 가능)
+          fileUrl = result.url;
+        }
+        
+        setEditingItem({ ...editingItem, url: fileUrl });
         setMessage(`✅ 업로드 완료: ${result.originalName}`);
         setTimeout(() => setMessage(''), 3000);
       } else {
-        const errorText = await res.text();
-        console.error('❌ Upload failed:', errorText);
-        throw new Error('업로드 실패');
+        const errorData = await res.json().catch(() => ({ error: '업로드 실패' }));
+        console.error('❌ Upload failed:', errorData);
+        setMessage(`❌ 업로드 실패: ${errorData.error || '알 수 없는 오류'}`);
+        if (errorData.error && errorData.error.includes('R2가 설정되지 않았습니다')) {
+          setTimeout(() => setMessage(''), 8000);
+        } else {
+          setTimeout(() => setMessage(''), 5000);
+        }
       }
     } catch (err) {
       console.error('Upload error:', err);
       setMessage('❌ 업로드 중 오류가 발생했습니다: ' + (err as Error).message);
+      setTimeout(() => setMessage(''), 5000);
     } finally {
       setUploading(false);
     }
