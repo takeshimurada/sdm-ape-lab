@@ -1,5 +1,5 @@
 
-import React, { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useCallback, Component, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera, Float, Environment, ContactShadows } from '@react-three/drei';
