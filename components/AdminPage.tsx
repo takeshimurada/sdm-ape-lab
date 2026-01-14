@@ -189,6 +189,65 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
+  // 📥 CSV 다운로드
+  const handleDownloadCSV = () => {
+    if (guestbookEntries.length === 0) {
+      setMessage('다운로드할 방명록이 없습니다.');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
+    // CSV 헤더
+    const headers = ['ID', '이름', '메시지', '날짜', '시간'];
+    
+    // CSV 데이터 변환
+    const csvRows = [
+      headers.join(','),
+      ...guestbookEntries.map(entry => {
+        // CSV 형식에 맞게 따옴표 처리 및 쉼표/줄바꿈 제거
+        const escapeCSV = (str: string) => {
+          if (!str) return '';
+          // 쉼표, 줄바꿈, 따옴표가 있으면 따옴표로 감싸고 내부 따옴표는 두 개로
+          if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        };
+        
+        return [
+          entry.id,
+          escapeCSV(entry.name),
+          escapeCSV(entry.message),
+          escapeCSV(entry.date),
+          escapeCSV(entry.time || '')
+        ].join(',');
+      })
+    ];
+    
+    // BOM 추가 (한글 깨짐 방지)
+    const BOM = '\uFEFF';
+    const csvContent = BOM + csvRows.join('\n');
+    
+    // Blob 생성 및 다운로드
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // 파일명: guestbook_YYYYMMDD_HHMMSS.csv
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+    link.download = `guestbook_${timestamp}.csv`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    setMessage('✅ CSV 파일이 다운로드되었습니다.');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
   // 💾 데이터 저장 (API로)
   const saveData = async (data: ArchiveItem[]) => {
     setSaving(true);
@@ -488,6 +547,17 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         {/* Guestbook Tab */}
         {activeTab === 'guestbook' && (
         <div className="max-w-6xl mx-auto">
+          {/* CSV 다운로드 버튼 */}
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={handleDownloadCSV}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors flex items-center gap-2"
+              style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
+            >
+              📥 CSV 다운로드
+            </button>
+          </div>
+          
           <div className="space-y-4">
             {guestbookEntries.map((entry) => (
               <motion.div
