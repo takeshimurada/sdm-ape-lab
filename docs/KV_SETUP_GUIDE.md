@@ -1,9 +1,51 @@
-// Cloudflare Pages Functions
-// /api/guestbook 엔드포인트
+# 🔧 Cloudflare KV 설정 가이드 (방명록 저장)
 
+## ✅ KV 설정하면 가능한 것
+
+- ✅ **모든 유저가 작성한 방명록이 실제로 저장됨**
+- ✅ **모든 유저가 다른 사람이 작성한 방명록을 볼 수 있음**
+- ✅ **실시간으로 방명록이 공유됨**
+- ✅ **무료 플랜으로 충분함** (일일 100,000 읽기, 1,000 쓰기)
+
+---
+
+## 📋 설정 단계
+
+### 1단계: Cloudflare Dashboard에서 KV Namespace 생성
+
+1. **Cloudflare Dashboard 접속**
+   - https://dash.cloudflare.com
+
+2. **Workers & Pages → KV 메뉴 이동**
+
+3. **"Create a namespace" 클릭**
+   - 이름: `GUESTBOOK_DATA` (또는 원하는 이름)
+   - 생성 완료 후 **Namespace ID** 복사 (중요!)
+
+---
+
+### 2단계: Cloudflare Pages 프로젝트에 KV 바인딩
+
+1. **Workers & Pages → Pages → sdm-ape-lab 프로젝트 선택**
+
+2. **Settings 탭 → Functions 메뉴**
+
+3. **KV Namespace Bindings 섹션에서 "Add binding" 클릭**
+   - **Variable name**: `GUESTBOOK_KV` (코드에서 사용할 이름)
+   - **KV namespace**: 위에서 생성한 `GUESTBOOK_DATA` 선택
+   - **Save** 클릭
+
+---
+
+### 3단계: 코드 수정
+
+#### `functions/api/guestbook.js` 수정
+
+```javascript
 // GET: 방명록 목록 조회
 export async function onRequestGet(context) {
   try {
+    // KV에서 데이터 읽기
     const kv = context.env.GUESTBOOK_KV;
     
     if (!kv) {
@@ -137,3 +179,64 @@ export async function onRequestPost(context) {
     });
   }
 }
+```
+
+---
+
+## 🚨 보안 고려사항
+
+### 1. Rate Limiting (권장)
+- 같은 IP에서 너무 자주 요청하는 것을 제한
+- Cloudflare의 Rate Limiting 기능 사용 가능
+
+### 2. 스팸 방지
+- 현재는 기본적인 검증만 있음
+- 필요시 CAPTCHA나 추가 검증 추가 가능
+
+### 3. 데이터 크기 제한
+- 현재: 이름 50자, 메시지 500자
+- KV는 키당 최대 25MB까지 저장 가능
+
+---
+
+## 💰 비용
+
+### 무료 플랜 (Free Plan)
+- **읽기**: 일일 100,000회
+- **쓰기**: 일일 1,000회
+- **저장**: 1GB
+
+### 방명록 사용량 예상
+- 일일 방문자 1,000명 가정
+- 각 방문자가 10개 방명록 조회 = 10,000 읽기
+- 각 방문자가 1개 작성 = 1,000 쓰기
+- **무료 플랜으로 충분함!**
+
+---
+
+## ✅ 설정 완료 후
+
+1. **코드 수정 후 GitHub에 푸시**
+2. **Cloudflare Pages 자동 배포 대기** (1-2분)
+3. **테스트**: 방명록 작성 후 실제로 저장되는지 확인
+
+---
+
+## 🔍 문제 해결
+
+### KV가 작동하지 않는 경우
+1. Cloudflare Dashboard에서 KV 바인딩 확인
+2. Variable name이 `GUESTBOOK_KV`인지 확인
+3. Functions 로그 확인 (Cloudflare Dashboard → Pages → Functions → Logs)
+
+### 데이터가 보이지 않는 경우
+1. KV에 데이터가 저장되었는지 확인 (Cloudflare Dashboard → KV → 데이터 확인)
+2. GET 요청이 올바르게 작동하는지 확인
+
+---
+
+## 📝 참고사항
+
+- KV는 **전역적으로 분산**되어 있어 매우 빠름
+- 데이터는 **자동으로 복제**됨
+- **무료 플랜으로도 충분히 사용 가능**
