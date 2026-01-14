@@ -142,7 +142,6 @@ export async function onRequestPost(context) {
       },
     });
   } catch (error) {
-    // 에러 상세 정보 반환 (디버깅용)
     return new Response(JSON.stringify({ 
       error: '저장 중 오류가 발생했습니다.',
       details: error.message,
@@ -156,3 +155,4 @@ export async function onRequestPost(context) {
     });
   }
 }
+

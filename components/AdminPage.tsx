@@ -41,17 +41,21 @@ const getYouTubeThumbnail = (url: string): string => {
 // 백엔드 URL 헬퍼 함수
 const getBackendUrl = () => {
   const hostname = window.location.hostname;
-  const isLocalhost = hostname === 'localhost';
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
   const isSandbox = hostname.includes('sandbox.novita.ai');
+  const isCloudflare = hostname.includes('pages.dev');
   
   if (isLocalhost) {
     return 'http://localhost:3001';
   } else if (isSandbox) {
     // Sandbox 환경: HTTPS 유지하면서 포트를 3001로 변경
     return window.location.origin.replace(/\d{4}-/, '3001-');
+  } else if (isCloudflare) {
+    // Cloudflare Pages: Functions API 사용 (상대 경로)
+    return '';
   } else {
-    // Cloudflare Pages: 백엔드 없음 (에러 표시)
-    return null;
+    // 기타: Functions API 사용
+    return '';
   }
 };
 
@@ -85,13 +89,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const loadData = async () => {
     try {
       const backendUrl = getBackendUrl();
+      const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
-      if (!backendUrl) {
-        setMessage('❌ 이 환경에서는 관리자 기능을 사용할 수 없습니다. Sandbox 환경을 사용해주세요.');
-        return;
+      const res = await fetch(apiUrl);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
       }
-      
-      const res = await fetch(`${backendUrl}/api/archive`);
       const data = await res.json();
       setItems(data);
     } catch (err) {
@@ -104,9 +107,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const loadGuestbookData = async () => {
     try {
       const backendUrl = getBackendUrl();
-      if (!backendUrl) return;
+      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook` : '/api/guestbook';
       
-      const res = await fetch(`${backendUrl}/api/guestbook`);
+      const res = await fetch(apiUrl);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
       setGuestbookEntries(data);
     } catch (err) {
@@ -118,9 +124,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const handleGuestbookUpdate = async (entry: GuestBookEntry) => {
     try {
       const backendUrl = getBackendUrl();
-      if (!backendUrl) return;
+      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook/${entry.id}` : `/api/guestbook/${entry.id}`;
       
-      const res = await fetch(`${backendUrl}/api/guestbook/${entry.id}`, {
+      const res = await fetch(apiUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -134,6 +140,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         setEditingEntry(null);
         setMessage('✅ 방명록이 수정되었습니다.');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        throw new Error('수정 실패');
       }
     } catch (err) {
       console.error('Failed to update guestbook:', err);
@@ -147,9 +155,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     
     try {
       const backendUrl = getBackendUrl();
-      if (!backendUrl) return;
+      const apiUrl = backendUrl ? `${backendUrl}/api/guestbook/${id}` : `/api/guestbook/${id}`;
       
-      const res = await fetch(`${backendUrl}/api/guestbook/${id}`, {
+      const res = await fetch(apiUrl, {
         method: 'DELETE'
       });
       
@@ -157,6 +165,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         await loadGuestbookData();
         setMessage('🗑️ 방명록이 삭제되었습니다.');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        throw new Error('삭제 실패');
       }
     } catch (err) {
       console.error('Failed to delete guestbook:', err);
@@ -169,7 +179,9 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     setSaving(true);
     try {
       const backendUrl = getBackendUrl();
-      const res = await fetch(`${backendUrl}/api/archive`, {
+      const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -194,6 +206,15 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const file = e.target.files?.[0];
     if (!file || !editingItem) return;
 
+    const backendUrl = getBackendUrl();
+    
+    // Cloudflare Pages 환경에서는 파일 업로드 불가
+    if (!backendUrl) {
+      setMessage('⚠️ Cloudflare Pages에서는 파일 업로드가 불가능합니다. 이미지 URL을 직접 입력하거나, Cloudflare R2를 설정해주세요.');
+      setTimeout(() => setMessage(''), 5000);
+      return;
+    }
+
     setUploading(true);
     setMessage('📤 파일 업로드 중...');
 
@@ -203,7 +224,6 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const backendUrl = getBackendUrl();
       const res = await fetch(`${backendUrl}/api/upload`, {
         method: 'POST',
         body: formData
