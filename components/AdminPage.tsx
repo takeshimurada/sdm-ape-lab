@@ -102,7 +102,8 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   const loadData = async () => {
     try {
-      const backendUrl = getArchiveBackendUrl();
+      // Archive도 Cloudflare Pages KV 사용 (로컬과 Cloudflare 동기화)
+      const backendUrl = getBackendUrl(); // Cloudflare Pages URL
       const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
       const res = await fetch(apiUrl);
@@ -249,11 +250,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // 💾 데이터 저장 (API로)
+  // 💾 데이터 저장 (API로) - Cloudflare Pages KV 사용
   const saveData = async (data: ArchiveItem[]) => {
     setSaving(true);
     try {
-      const backendUrl = getArchiveBackendUrl();
+      // Archive도 Cloudflare Pages KV 사용 (로컬과 Cloudflare 동기화)
+      const backendUrl = getBackendUrl(); // Cloudflare Pages URL
       const apiUrl = backendUrl ? `${backendUrl}/api/archive` : '/api/archive';
       
       const res = await fetch(apiUrl, {
@@ -263,26 +265,13 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       });
 
       if (res.ok) {
-        const backendUrl = getBackendUrl();
-        if (backendUrl) {
-          // 로컬 환경: Git 커밋 안내
-          setMessage('✅ 저장 완료! Cloudflare Pages에 반영하려면 Git에 커밋하세요:\n\n1. git add public/archive-data.json\n2. git commit -m "Update archive"\n3. git push origin main');
-          setTimeout(() => setMessage(''), 8000);
-        } else {
-          // Cloudflare Pages: KV 사용 또는 정적 파일
-          const result = await res.json().catch(() => ({}));
-          if (result.error && result.error.includes('KV가 설정되지 않았습니다')) {
-            setMessage('⚠️ KV가 설정되지 않았습니다. 로컬에서 저장 후 Git에 커밋하세요.');
-            setTimeout(() => setMessage(''), 8000);
-          } else {
-            setMessage('✅ 저장 완료! 바로 반영되었습니다.');
-            setTimeout(() => setMessage(''), 3000);
-          }
-        }
+        // 항상 Cloudflare Pages KV에 저장됨
+        setMessage('✅ 저장 완료! 바로 반영되었습니다.');
+        setTimeout(() => setMessage(''), 3000);
       } else {
         const errorData = await res.json().catch(() => ({ error: '저장 실패' }));
         if (errorData.error && errorData.error.includes('KV가 설정되지 않았습니다')) {
-          setMessage(`⚠️ ${errorData.error}\n\n${errorData.warning || ''}\n\n로컬에서 저장 후 Git에 커밋하세요.`);
+          setMessage(`⚠️ ${errorData.error}\n\n${errorData.message || ''}\n\nCloudflare Dashboard에서 ARCHIVE_KV를 설정해주세요.`);
           setTimeout(() => setMessage(''), 10000);
         } else {
           throw new Error('저장 실패');
@@ -929,11 +918,11 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 <div className="flex gap-4">
                   <button
                     onClick={handleSave}
-                    disabled={saving || !editingItem.url || !editingItem.title}
+                    disabled={saving || (!editingItem.url && editingItem.type !== 'text') || !editingItem.title}
                     className="flex-1 px-6 py-3 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
                     style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
-                    {saving ? '⏳ 저장 중...' : !editingItem.url ? '⚠️ URL 필요' : !editingItem.title ? '⚠️ 제목 필요' : '💾 저장'}
+                    {saving ? '⏳ 저장 중...' : (!editingItem.url && editingItem.type !== 'text') ? '⚠️ URL 필요' : !editingItem.title ? '⚠️ 제목 필요' : '💾 저장'}
                   </button>
                   <button
                     onClick={() => setEditingItem(null)}
