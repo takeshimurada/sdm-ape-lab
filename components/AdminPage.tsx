@@ -805,7 +805,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         💡 클릭 시 새 탭에서 열립니다.
                       </p>
                     )}
-                    {editingItem.type !== 'youtube' && editingItem.type !== 'website' && editingItem.type !== 'text' && (
+                    {editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
                       <p className="text-xs text-gray-500 mt-1">
                         💡 파일을 업로드하거나 외부 URL을 입력하세요. R2가 설정되어 있으면 바로 업로드 가능합니다.
                       </p>
