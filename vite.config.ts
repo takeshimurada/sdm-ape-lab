@@ -27,9 +27,9 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            // Force new filename on every build to bypass cache
-            entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-            chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+            // Vite automatically generates unique hashes when content changes
+            entryFileNames: `assets/[name]-[hash].js`,
+            chunkFileNames: `assets/[name]-[hash].js`,
             assetFileNames: `assets/[name]-[hash].[ext]`
           }
         }
