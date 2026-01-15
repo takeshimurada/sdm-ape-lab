@@ -1,7 +1,0 @@
-{
-  "name": "Interactive 3D Face Portfolio",
-  "description": "A high-end, Spline-inspired interactive landing page featuring a 3D head model that follows the mouse cursor, built with React Three Fiber and Framer Motion.",
-  "requestFramePermissions": [
-    "camera"
-  ]
-}
