@@ -361,13 +361,23 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       
-      // 반응형 스케일: 실제 브라우저 창 너비 기준 (모바일 < 768px, 태블릿 768-1024px, 데스크톱 > 1024px)
+      // 반응형 스케일: 화면 크기에 비례해서 연속적으로 변화
       const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-      const isMobile = windowWidth < 768;
-      const isTablet = windowWidth >= 768 && windowWidth < 1024;
-      const baseScale = isMobile 
-        ? MODEL_CONFIG.TARGET_SCALE_MOBILE 
-        : (isTablet ? MODEL_CONFIG.TARGET_SCALE_TABLET : MODEL_CONFIG.TARGET_SCALE);
+      
+      // 선형 보간으로 부드러운 크기 변화
+      const minWidth = 320;   // 최소 화면 (작은 폰)
+      const maxWidth = 1920;  // 최대 화면 (큰 데스크톱)
+      const minScale = 1.5;   // 최소 크기
+      const maxScale = 3.5;   // 최대 크기
+      
+      // 화면 너비를 0-1 범위로 정규화
+      const normalizedWidth = Math.max(0, Math.min(1, (windowWidth - minWidth) / (maxWidth - minWidth)));
+      
+      // 부드러운 곡선 적용 (작은 화면에서는 천천히, 큰 화면에서는 빠르게)
+      const easedWidth = normalizedWidth * normalizedWidth * (3 - 2 * normalizedWidth); // smoothstep
+      
+      // 최종 스케일 계산
+      const baseScale = minScale + easedWidth * (maxScale - minScale);
       const targetScale = baseScale / maxDim;
       
       setScale(targetScale);
