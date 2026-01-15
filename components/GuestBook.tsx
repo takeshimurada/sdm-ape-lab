@@ -158,7 +158,7 @@ const GuestBook: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black overflow-y-auto">
-      <div className="min-h-screen pt-20 sm:pt-24 pb-12 px-4 sm:px-6">
+      <div className="min-h-screen pt-24 sm:pt-28 md:pt-24 pb-12 px-4 sm:px-6">
         {/* Instructions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

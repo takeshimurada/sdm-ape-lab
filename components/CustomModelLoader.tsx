@@ -327,6 +327,12 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
         touchRotationRef.current.x += deltaY * 0.005;
         touchRotationRef.current.y += deltaX * 0.005;
         
+        // Limit rotation range to prevent viewing from behind
+        // X-axis (vertical): -0.5 to 0.5 radians (~-30° to 30°)
+        // Y-axis (horizontal): -1.0 to 1.0 radians (~-60° to 60°)
+        touchRotationRef.current.x = Math.max(-0.5, Math.min(0.5, touchRotationRef.current.x));
+        touchRotationRef.current.y = Math.max(-1.0, Math.min(1.0, touchRotationRef.current.y));
+        
         touchStartRef.current = {
           x: e.touches[0].clientX,
           y: e.touches[0].clientY
