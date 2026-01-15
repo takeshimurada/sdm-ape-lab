@@ -368,7 +368,7 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
       const minWidth = 320;   // 최소 화면 (작은 폰)
       const maxWidth = 1920;  // 최대 화면 (큰 데스크톱)
       const minScale = 1.5;   // 최소 크기
-      const maxScale = 3.5;   // 최대 크기
+      const maxScale = 3.0;   // 최대 크기 (머리가 잘리지 않도록)
       
       // 화면 너비를 0-1 범위로 정규화
       const normalizedWidth = Math.max(0, Math.min(1, (windowWidth - minWidth) / (maxWidth - minWidth)));
