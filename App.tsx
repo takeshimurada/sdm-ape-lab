@@ -184,7 +184,7 @@ const App: React.FC = () => {
           <motion.div 
             animate={{ 
               scale: isClicked ? 1.5 : 1,
-              opacity: isClicked ? 0.65 : 0.15
+              opacity: isClicked ? 0.75 : 0.15
             }}
             transition={{ 
               duration: 0.4,
@@ -197,7 +197,7 @@ const App: React.FC = () => {
           <motion.div
             animate={{
               scale: isClicked ? 1.8 : 0.3,
-              opacity: isClicked ? 0.75 : 0
+              opacity: isClicked ? 0.85 : 0
             }}
             transition={{ 
               duration: 0.5,
@@ -215,7 +215,7 @@ const App: React.FC = () => {
           <motion.div 
              animate={{ 
                scale: isClicked ? 1.6 : [1, 1.15, 1], 
-               opacity: isClicked ? 0.45 : [0.05, 0.1, 0.05]
+               opacity: isClicked ? 0.55 : [0.05, 0.1, 0.05]
              }}
              transition={{ 
                repeat: isClicked ? 0 : Infinity, 
