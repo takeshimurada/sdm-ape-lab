@@ -183,8 +183,8 @@ const App: React.FC = () => {
           {/* Subtle Ambient Glow - Always present */}
           <motion.div 
             animate={{ 
-              scale: isClicked ? 1.3 : 1,
-              opacity: isClicked ? 0.35 : 0.15
+              scale: isClicked ? 1.5 : 1,
+              opacity: isClicked ? 0.65 : 0.15
             }}
             transition={{ 
               duration: 0.4,
@@ -196,8 +196,8 @@ const App: React.FC = () => {
           {/* Gentle Light Bloom on Click - Smooth fade in/out */}
           <motion.div
             animate={{
-              scale: isClicked ? 1.6 : 0.3,
-              opacity: isClicked ? 0.4 : 0
+              scale: isClicked ? 1.8 : 0.3,
+              opacity: isClicked ? 0.75 : 0
             }}
             transition={{ 
               duration: 0.5,
@@ -214,8 +214,8 @@ const App: React.FC = () => {
           {/* Outer Soft Halo - Very subtle */}
           <motion.div 
              animate={{ 
-               scale: isClicked ? 1.4 : [1, 1.15, 1], 
-               opacity: isClicked ? 0.2 : [0.05, 0.1, 0.05]
+               scale: isClicked ? 1.6 : [1, 1.15, 1], 
+               opacity: isClicked ? 0.45 : [0.05, 0.1, 0.05]
              }}
              transition={{ 
                repeat: isClicked ? 0 : Infinity, 
