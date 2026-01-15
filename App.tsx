@@ -32,7 +32,6 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN' | 'GUESTBOOK'>('HOME');
   const [aboutText, setAboutText] = useState('01010101 01010101 01010101'); // Start with binary placeholder
   const [isTranslating, setIsTranslating] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // Ultra-fast cursor using direct DOM manipulation with CSS transforms
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -106,20 +105,13 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Detect touch device
-    const checkTouchDevice = () => {
-      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      setIsTouchDevice(hasTouchScreen);
-    };
-    checkTouchDevice();
-
     // Check URL parameter for admin access: ?admin
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('admin')) {
       promptAdminPassword();
     }
 
-    // Ultra-fast cursor movement using RAF for 60fps+ performance (desktop only)
+    // Ultra-fast cursor movement using RAF for 60fps+ performance
     let rafId: number;
     let mousePos = { x: -100, y: -100 };
 
@@ -129,7 +121,7 @@ const App: React.FC = () => {
     };
 
     const updateCursor = () => {
-      if (cursorRef.current && !isTouchDevice) {
+      if (cursorRef.current) {
         // Direct style manipulation - bypasses ALL React overhead
         cursorRef.current.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`;
       }
@@ -165,26 +157,25 @@ const App: React.FC = () => {
       cancelAnimationFrame(rafId);
       clearTimeout(timer);
     };
-  }, [promptAdminPassword, isTouchDevice]);
+  }, [promptAdminPassword]);
 
   return (
     <div className="relative w-full h-[100dvh] min-h-[100dvh] bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
-      {/* Ultra-fast Mouse Follow Glow - Desktop only */}
-      {!isTouchDevice && (
-        <div
-          ref={cursorRef}
-          className="fixed top-0 left-0 z-[9999] pointer-events-none"
-          style={{ 
-            transform: 'translate(-100px, -100px) translate(-50%, -50%)',
-            willChange: 'transform'
-          }}
-        >
+      {/* Ultra-fast Mouse Follow Glow - Direct DOM manipulation */}
+      <div
+        ref={cursorRef}
+        className="fixed top-0 left-0 z-[9999] pointer-events-none"
+        style={{ 
+          transform: 'translate(-100px, -100px) translate(-50%, -50%)',
+          willChange: 'transform'
+        }}
+      >
         <div className="relative flex items-center justify-center">
           {/* Subtle Ambient Glow - Always present */}
           <motion.div 
             animate={{ 
-              scale: isClicked ? 1.5 : 1,
-              opacity: isClicked ? 0.75 : 0.15
+              scale: isClicked ? 1.3 : 1,
+              opacity: isClicked ? 0.35 : 0.15
             }}
             transition={{ 
               duration: 0.4,
@@ -196,8 +187,8 @@ const App: React.FC = () => {
           {/* Gentle Light Bloom on Click - Smooth fade in/out */}
           <motion.div
             animate={{
-              scale: isClicked ? 1.8 : 0.3,
-              opacity: isClicked ? 0.85 : 0
+              scale: isClicked ? 1.6 : 0.3,
+              opacity: isClicked ? 0.4 : 0
             }}
             transition={{ 
               duration: 0.5,
@@ -214,8 +205,8 @@ const App: React.FC = () => {
           {/* Outer Soft Halo - Very subtle */}
           <motion.div 
              animate={{ 
-               scale: isClicked ? 1.6 : [1, 1.15, 1], 
-               opacity: isClicked ? 0.55 : [0.05, 0.1, 0.05]
+               scale: isClicked ? 1.4 : [1, 1.15, 1], 
+               opacity: isClicked ? 0.2 : [0.05, 0.1, 0.05]
              }}
              transition={{ 
                repeat: isClicked ? 0 : Infinity, 
@@ -226,7 +217,6 @@ const App: React.FC = () => {
           />
         </div>
       </div>
-      )}
 
       <AnimatePresence>
         {!isLoaded && (

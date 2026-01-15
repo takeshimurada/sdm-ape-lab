@@ -268,11 +268,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="pt-8 sm:pt-12 border-t border-white/10"
+            className="pt-12 border-t border-white/10"
           >
             <button
               onClick={onClose}
-              className="px-6 py-3 text-white/40 hover:text-white/80 active:text-white transition-colors text-sm font-mono touch-manipulation"
+              className="text-white/40 hover:text-white/80 transition-colors text-sm font-mono"
             >
               ← back
             </button>

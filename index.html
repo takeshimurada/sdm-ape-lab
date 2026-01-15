@@ -15,15 +15,8 @@
             background-color: #010101;
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: white;
-        }
-        /* Hide cursor only on non-touch devices */
-        @media (hover: hover) and (pointer: fine) {
-            body {
-                cursor: none !important;
-            }
-            a, button, [role="button"] {
-                cursor: none !important;
-            }
+            /* Hide the system cursor globally */
+            cursor: none !important;
         }
         canvas {
             touch-action: none;
@@ -31,6 +24,10 @@
         ::selection {
             background: #ff007f;
             color: white;
+        }
+        /* Ensure all interactive elements don't show the default pointer */
+        a, button, [role="button"] {
+            cursor: none !important;
         }
         /* Shine animation for asphalt button */
         @keyframes shine {

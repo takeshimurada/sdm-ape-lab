@@ -158,14 +158,14 @@ const GuestBook: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black overflow-y-auto">
-      <div className="min-h-screen pt-28 sm:pt-32 md:pt-28 pb-12 px-4 sm:px-6">
+      <div className="min-h-screen pt-24 pb-12 px-6">
         {/* Instructions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto mb-6 sm:mb-8"
+          className="max-w-2xl mx-auto mb-8"
         >
-          <p className="text-white/40 text-xs sm:text-sm leading-relaxed text-center italic px-2">
+          <p className="text-white/40 text-xs leading-relaxed text-center italic">
             {getInstructions()}
           </p>
         </motion.div>
@@ -175,7 +175,7 @@ const GuestBook: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="max-w-2xl mx-auto mb-12 sm:mb-16"
+          className="max-w-2xl mx-auto mb-16"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -185,7 +185,7 @@ const GuestBook: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Name"
                 maxLength={50}
-                className="w-full bg-transparent border-b border-white/10 py-3 sm:py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors text-sm sm:text-base"
+                className="w-full bg-transparent border-b border-white/10 py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors text-sm"
                 disabled={submitting}
               />
             </div>
@@ -197,7 +197,7 @@ const GuestBook: React.FC = () => {
                 placeholder="Leave a message..."
                 maxLength={500}
                 rows={4}
-                className="w-full bg-transparent border-b border-white/10 py-3 sm:py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors resize-none text-sm sm:text-base"
+                className="w-full bg-transparent border-b border-white/10 py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors resize-none text-sm"
                 disabled={submitting}
               />
             </div>
@@ -223,7 +223,7 @@ const GuestBook: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full sm:w-auto px-8 py-4 border border-white/20 text-white/80 hover:bg-white/5 active:bg-white/10 hover:text-white transition-all text-xs tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+              className="px-8 py-3 border border-white/20 text-white/80 hover:bg-white/5 hover:text-white transition-all text-xs tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting...' : 'communicate'}
             </button>
@@ -231,7 +231,7 @@ const GuestBook: React.FC = () => {
         </motion.div>
 
         {/* Entries */}
-        <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
+        <div className="max-w-2xl mx-auto space-y-8">
           <AnimatePresence>
             {entries.map((entry, index) => (
               <motion.div
@@ -239,15 +239,15 @@ const GuestBook: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="border-b border-white/5 pb-4 sm:pb-6"
+                className="border-b border-white/5 pb-6"
               >
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 mb-2">
+                <div className="flex items-baseline justify-between mb-2">
                   <span className="text-white text-sm font-medium">{entry.name}</span>
                   <span className="text-white/30 text-xs">
                     {entry.date} {entry.time && entry.time}
                   </span>
                 </div>
-                <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
                   {entry.message}
                 </p>
               </motion.div>

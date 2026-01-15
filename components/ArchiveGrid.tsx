@@ -147,7 +147,7 @@ const ArchiveGrid: React.FC = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: index * 0.02 }}
                 onClick={() => handleItemClick(item)}
-                className="group cursor-pointer py-4 px-3 sm:px-2 border-b border-white/5 hover:bg-white/3 active:bg-white/5 transition-all touch-manipulation"
+                className="group cursor-pointer py-3 px-2 border-b border-white/5 hover:bg-white/3 transition-all"
               >
                 <div className="flex items-baseline gap-3">
                   {/* Icon */}

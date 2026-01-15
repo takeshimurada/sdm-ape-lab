@@ -409,24 +409,24 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
   return (
     <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
-      <div className="min-h-screen px-4 sm:px-6 md:px-8 py-16 sm:py-20">
+      <div className="min-h-screen px-8 py-20">
         {/* Header */}
-        <div className="max-w-6xl mx-auto mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="flex justify-between items-center mb-6">
             <div>
               <h1 
-                className="text-2xl sm:text-3xl font-bold text-white mb-2"
+                className="text-3xl font-bold text-white mb-2"
                 style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
               >
                 관리자 페이지
               </h1>
-              <p className="text-gray-400 text-xs sm:text-sm">
+              <p className="text-gray-400 text-sm">
                 프로젝트를 추가/수정/삭제하면 <strong className="text-pink-400">즉시 반영</strong>됩니다!
               </p>
             </div>
             <button
               onClick={onExit}
-              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 text-white rounded-lg transition-colors text-sm touch-manipulation"
+              className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
             >
               ← 돌아가기
             </button>
@@ -448,13 +448,13 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           </AnimatePresence>
 
           {/* Tabs */}
-          <div className="flex gap-2 sm:gap-4 mb-6 border-b border-white/10 overflow-x-auto">
+          <div className="flex gap-4 mb-6 border-b border-white/10">
             <button
               onClick={() => setActiveTab('archive')}
-              className={`px-4 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap touch-manipulation ${
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === 'archive'
                   ? 'text-white border-b-2 border-pink-500'
-                  : 'text-white/50 hover:text-white/80 active:text-white'
+                  : 'text-white/50 hover:text-white/80'
               }`}
               style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
             >
@@ -462,10 +462,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             </button>
             <button
               onClick={() => setActiveTab('guestbook')}
-              className={`px-4 py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap touch-manipulation ${
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === 'guestbook'
                   ? 'text-white border-b-2 border-pink-500'
-                  : 'text-white/50 hover:text-white/80 active:text-white'
+                  : 'text-white/50 hover:text-white/80'
               }`}
               style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
             >
@@ -477,7 +477,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
           {activeTab === 'archive' && (
             <button
               onClick={handleAdd}
-              className="w-full sm:w-auto px-6 py-4 bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white rounded-lg font-semibold transition-colors mb-6 touch-manipulation"
+              className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors mb-6"
               style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
             >
               + 새 프로젝트 추가
@@ -495,17 +495,17 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 key={item.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="group flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 px-3 sm:px-4 rounded-lg hover:bg-gray-900 active:bg-gray-800 transition-colors gap-3 sm:gap-0"
+                className="group flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-900 transition-colors"
               >
-                <div className="flex items-center gap-2 sm:gap-4 flex-1 w-full overflow-hidden">
-                  <span className="text-gray-500 text-xs sm:text-sm font-mono flex-shrink-0">
+                <div className="flex items-center gap-4 flex-1">
+                  <span className="text-gray-500 text-sm font-mono">
                     [{String(item.id).padStart(3, '0')}]
                   </span>
-                  <span className="text-white/60 flex-shrink-0">
+                  <span className="text-white/60">
                     {item.type === 'youtube' ? '𓆛' : item.type === 'video' ? '𓁹' : '𓉔'}
                   </span>
                   <span 
-                    className="text-white text-sm sm:text-base truncate flex-1"
+                    className="text-white"
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(item.title) 
                         ? 'Dotum, "돋움", sans-serif' 
@@ -514,25 +514,25 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                   >
                     {item.title}
                   </span>
-                  <span className="text-gray-600 text-xs sm:text-sm font-mono flex-shrink-0">
+                  <span className="text-gray-600 text-sm font-mono ml-auto">
                     {item.year}
                   </span>
                 </div>
 
-                {/* Actions - Always visible on mobile */}
-                <div className="flex gap-2 w-full sm:w-auto opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                {/* Actions */}
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => {
                       setEditingItem(item);
                       setIsAdding(false);
                     }}
-                    className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm rounded transition-colors touch-manipulation"
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                   >
                     수정
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="flex-1 sm:flex-none px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs sm:text-sm rounded transition-colors touch-manipulation"
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
                   >
                     삭제
                   </button>
@@ -547,10 +547,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         {activeTab === 'guestbook' && (
         <div className="max-w-6xl mx-auto">
           {/* CSV 다운로드 버튼 */}
-          <div className="mb-4 flex justify-start sm:justify-end">
+          <div className="mb-4 flex justify-end">
             <button
               onClick={handleDownloadCSV}
-              className="w-full sm:w-auto px-4 py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-xs sm:text-sm rounded transition-colors flex items-center justify-center gap-2 touch-manipulation"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors flex items-center gap-2"
               style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
             >
               📥 CSV 다운로드
@@ -563,7 +563,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 key={entry.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="group border border-white/10 rounded-lg p-3 sm:p-4 hover:bg-gray-900 active:bg-gray-800 transition-colors"
+                className="group border border-white/10 rounded-lg p-4 hover:bg-gray-900 transition-colors"
               >
                 {editingEntry?.id === entry.id ? (
                   // 수정 모드
@@ -588,16 +588,16 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         maxLength={500}
                       />
                     </div>
-                    <div className="flex gap-2 flex-col sm:flex-row">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => handleGuestbookUpdate(editingEntry)}
-                        className="flex-1 sm:flex-none px-4 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm rounded transition-colors touch-manipulation"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                       >
                         저장
                       </button>
                       <button
                         onClick={() => setEditingEntry(null)}
-                        className="flex-1 sm:flex-none px-4 py-3 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white text-sm rounded transition-colors touch-manipulation"
+                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded transition-colors"
                       >
                         취소
                       </button>
@@ -606,28 +606,28 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 ) : (
                   // 표시 모드
                   <div>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-2">
+                        <div className="flex items-baseline gap-3 mb-2">
                           <span className="text-white font-medium text-sm">{entry.name}</span>
                           <span className="text-white/30 text-xs">
                             {entry.date} {entry.time && entry.time}
                           </span>
                         </div>
-                        <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
                           {entry.message}
                         </p>
                       </div>
-                      <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
                         <button
                           onClick={() => setEditingEntry(entry)}
-                          className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs rounded transition-colors touch-manipulation"
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
                         >
                           수정
                         </button>
                         <button
                           onClick={() => handleGuestbookDelete(entry.id)}
-                          className="flex-1 sm:flex-none px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs rounded transition-colors touch-manipulation"
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
                         >
                           삭제
                         </button>
@@ -662,10 +662,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-gray-900 rounded-xl p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800"
+                className="bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800"
               >
                 <h2 
-                  className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
+                  className="text-2xl font-bold text-white mb-6"
                   style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                 >
                   {isAdding ? '새 프로젝트 추가' : '프로젝트 수정'}
@@ -674,54 +674,49 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 {/* Type Selection */}
                 <div className="mb-4">
                   <label 
-                    className="block text-gray-400 text-xs sm:text-sm mb-2"
+                    className="block text-gray-400 text-sm mb-2"
                     style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
                     타입
                   </label>
-                  <div className="grid grid-cols-2 sm:flex gap-3 sm:gap-4">
-                    <label className="flex items-center gap-2 text-white cursor-pointer text-sm touch-manipulation">
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
                         type="radio"
                         checked={editingItem.type === 'image'}
                         onChange={() => setEditingItem({ ...editingItem, type: 'image' })}
-                        className="w-4 h-4"
                       />
                       🖼️ 이미지
                     </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer text-sm touch-manipulation">
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
                         type="radio"
                         checked={editingItem.type === 'video'}
                         onChange={() => setEditingItem({ ...editingItem, type: 'video' })}
-                        className="w-4 h-4"
                       />
                       🎬 비디오
                     </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer text-sm touch-manipulation">
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
                         type="radio"
                         checked={editingItem.type === 'youtube'}
                         onChange={() => setEditingItem({ ...editingItem, type: 'youtube' })}
-                        className="w-4 h-4"
                       />
                       📺 YouTube
                     </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer text-sm touch-manipulation">
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
                         type="radio"
                         checked={editingItem.type === 'website'}
                         onChange={() => setEditingItem({ ...editingItem, type: 'website' })}
-                        className="w-4 h-4"
                       />
                       🌐 웹사이트
                     </label>
-                    <label className="flex items-center gap-2 text-white cursor-pointer text-sm touch-manipulation col-span-2 sm:col-span-1">
+                    <label className="flex items-center gap-2 text-white cursor-pointer">
                       <input
                         type="radio"
                         checked={editingItem.type === 'text'}
                         onChange={() => setEditingItem({ ...editingItem, type: 'text' })}
-                        className="w-4 h-4"
                       />
                       📝 텍스트
                     </label>
@@ -793,7 +788,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                           ? 'https://earth.google.com/web/'
                           : '/uploads/파일명.png 또는 https://example.com/image.jpg'
                       }
-                      className="w-full px-3 sm:px-4 py-3 bg-gray-800 text-white text-sm rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
+                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
                     />
                     {editingItem.type === 'youtube' && (
                       <p className="text-xs text-gray-500 mt-1">
@@ -805,7 +800,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                         💡 클릭 시 새 탭에서 열립니다.
                       </p>
                     )}
-                    {editingItem.type !== 'youtube' && editingItem.type !== 'website' && (
+                    {editingItem.type !== 'youtube' && editingItem.type !== 'website' && editingItem.type !== 'text' && (
                       <p className="text-xs text-gray-500 mt-1">
                         💡 파일을 업로드하거나 외부 URL을 입력하세요. R2가 설정되어 있으면 바로 업로드 가능합니다.
                       </p>
@@ -850,7 +845,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     type="text"
                     value={editingItem.title}
                     onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-3 bg-gray-800 text-white text-sm rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none"
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(editingItem.title) 
                         ? 'Dotum, "돋움", sans-serif' 
@@ -872,7 +867,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
                     placeholder="프로젝트에 대한 상세 설명을 입력하세요..."
                     rows={4}
-                    className="w-full px-3 sm:px-4 py-3 bg-gray-800 text-white text-sm rounded-lg border border-gray-700 focus:border-pink-500 outline-none resize-none"
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none resize-none"
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(editingItem.description || '') 
                         ? 'Dotum, "돋움", sans-serif' 
@@ -894,23 +889,23 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     value={editingItem.year}
                     onChange={(e) => setEditingItem({ ...editingItem, year: e.target.value })}
                     placeholder="2025"
-                    className="w-full px-3 sm:px-4 py-3 bg-gray-800 text-white text-sm rounded-lg border border-gray-700 focus:border-pink-500 outline-none font-mono"
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-pink-500 outline-none font-mono"
                   />
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <div className="flex gap-4">
                   <button
                     onClick={handleSave}
                     disabled={saving || (!editingItem.url && editingItem.type !== 'text') || !editingItem.title}
-                    className="flex-1 px-6 py-4 bg-pink-500 hover:bg-pink-600 active:bg-pink-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors touch-manipulation text-sm"
+                    className="flex-1 px-6 py-3 bg-pink-500 hover:bg-pink-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
                     style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
                     {saving ? '⏳ 저장 중...' : (!editingItem.url && editingItem.type !== 'text') ? '⚠️ URL 필요' : !editingItem.title ? '⚠️ 제목 필요' : '💾 저장'}
                   </button>
                   <button
                     onClick={() => setEditingItem(null)}
-                    className="px-6 py-4 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white rounded-lg transition-colors touch-manipulation text-sm"
+                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                     style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
                   >
                     취소

@@ -153,9 +153,7 @@ const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boole
       onClick={(e) => e.stopPropagation()} 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => setIsHovered(true)}
-      onTouchEnd={() => setIsHovered(false)}
-      className="group relative flex items-center justify-center p-4 sm:p-6 transition-all duration-500 cursor-none pointer-events-auto touch-manipulation min-w-[44px] min-h-[44px]"
+      className="group relative flex items-center justify-center p-4 sm:p-6 transition-all duration-500 cursor-none pointer-events-auto"
     >
       <SocialIcon3D icon={icon} isHovered={isHovered} />
     </a>
@@ -187,7 +185,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
       className="relative w-full h-full flex items-center justify-center bg-[#010101] cursor-none"
     >
       {/* 3D Background - Only render if WebGL is supported */}
-      <div className="absolute inset-0 z-0 pointer-events-none top-8 sm:top-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <ErrorBoundary fallback={<div className="w-full h-full bg-gradient-to-br from-pink-900/20 to-purple-900/20"></div>}>
           <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />
@@ -272,14 +270,12 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       }}
                       onMouseEnter={() => setIsHoveringBtn(true)}
                       onMouseLeave={() => setIsHoveringBtn(false)}
-                      onTouchStart={() => setIsHoveringBtn(true)}
-                      onTouchEnd={() => setIsHoveringBtn(false)}
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         console.log('????? button clicked!');
                         onTranslateSystem(); 
                       }}
-                      className="cursor-none pointer-events-auto text-[clamp(28px,6vw,48px)] touch-manipulation"
+                      className="cursor-none pointer-events-auto text-[clamp(28px,6vw,48px)]"
                       style={{ 
                         display: 'inline-block',
                         fontWeight: 900,
