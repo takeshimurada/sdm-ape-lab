@@ -384,6 +384,7 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
 
       const center = box.getCenter(new THREE.Vector3());
       scene.position.sub(center);
+      scene.position.y -= 0.15; // 머리가 잘리지 않도록 아래로 이동
 
       scene.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
