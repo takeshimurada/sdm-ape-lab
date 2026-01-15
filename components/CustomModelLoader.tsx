@@ -11,7 +11,7 @@ interface CustomModelLoaderProps {
 
 // Constants for 3D model configuration
 const MODEL_CONFIG = {
-  TARGET_SCALE: 4.5,        // 데스크톱 (1024px 이상)
+  TARGET_SCALE: 5.0,        // 데스크톱 (1024px 이상)
   TARGET_SCALE_TABLET: 2.8, // 태블릿 (768px ~ 1024px)
   TARGET_SCALE_MOBILE: 1.7, // 모바일 (768px 미만)
   ENV_MAP_INTENSITY: 0.15,
