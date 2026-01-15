@@ -132,7 +132,7 @@ const ArchiveGrid: React.FC = () => {
     <>
       <div className="w-full min-h-screen bg-black text-white">
         {/* Container - 더 넓고 여백 없이 */}
-        <div className="w-full px-4 md:px-8 pt-32 pb-12">
+        <div className="w-full px-4 md:px-8 pt-28 sm:pt-32 pb-12">
           {/* Archive List - 헤더 제거, 바로 시작 */}
           <motion.div
             initial={{ opacity: 0 }}

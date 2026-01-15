@@ -153,7 +153,7 @@ const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boole
       onClick={(e) => e.stopPropagation()} 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex items-center justify-center p-6 transition-all duration-500 cursor-none pointer-events-auto"
+      className="group relative flex items-center justify-center p-4 sm:p-6 transition-all duration-500 cursor-none pointer-events-auto"
     >
       <SocialIcon3D icon={icon} isHovered={isHovered} />
     </a>
@@ -211,7 +211,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
             exit={{ opacity: 0, y: 10 }}
             className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none"
           >
-            <div className="max-w-4xl px-10 text-center flex flex-col items-center pointer-events-none -mt-12">
+            <div className="max-w-4xl px-6 sm:px-10 text-center flex flex-col items-center pointer-events-none -mt-6 sm:-mt-12">
               <motion.div
                 key={formattedText + isTranslating}
                 initial={{ opacity: 0, filter: 'blur(10px)' }}
@@ -225,7 +225,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       fontFamily: "'Dotum', '돋움', sans-serif",
                       letterSpacing: '0.04em'
                     }}
-                    className="text-2xl md:text-4xl leading-[1.6] font-bold"
+                    className="text-xl sm:text-2xl md:text-4xl leading-[1.6] font-bold"
                   >
                     <ScrambledText 
                       text={formattedText} 
@@ -275,10 +275,9 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         console.log('????? button clicked!');
                         onTranslateSystem(); 
                       }}
-                      className="cursor-none pointer-events-auto"
+                      className="cursor-none pointer-events-auto text-[clamp(28px,6vw,48px)]"
                       style={{ 
                         display: 'inline-block',
-                        fontSize: '48px',
                         fontWeight: 900,
                         letterSpacing: '-0.05em',
                         color: isHoveringBtn ? '#2a2a2a' : '#1a1a1a',
@@ -296,7 +295,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.8 }}
-              className="absolute bottom-16 w-full flex justify-center gap-4 z-20 pointer-events-none"
+              className="absolute bottom-10 sm:bottom-16 w-full flex justify-center gap-3 sm:gap-4 z-20 pointer-events-none"
             >
               <SocialLink 
                 href="mailto:kitschkitschyayajjajja@gmail.com" 

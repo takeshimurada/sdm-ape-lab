@@ -160,7 +160,7 @@ const App: React.FC = () => {
   }, [promptAdminPassword]);
 
   return (
-    <div className="relative w-full h-screen bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
+    <div className="relative w-full h-[100dvh] min-h-[100dvh] bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
       {/* Ultra-fast Mouse Follow Glow - Direct DOM manipulation */}
       <div
         ref={cursorRef}

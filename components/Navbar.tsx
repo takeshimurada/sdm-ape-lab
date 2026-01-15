@@ -16,7 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, delay: 0.5 }}
-      className="fixed top-0 left-0 w-full z-[100] px-10 py-10 flex justify-between items-center mix-blend-difference"
+      className="fixed top-0 left-0 w-full z-[100] px-4 sm:px-6 md:px-10 py-4 md:py-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mix-blend-difference"
     >
       <div 
         className="relative flex flex-col gap-0.5 group cursor-none pointer-events-auto"
@@ -77,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
         )}
 
         <span 
-          className="text-xl font-bold tracking-tight text-white transition-all duration-300"
+          className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white transition-all duration-300"
           style={{
             textShadow: isLogoHovered 
               ? '0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.4)'
@@ -87,15 +87,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
         >
           서대문 유인원 연구회
         </span>
-        <span className="text-[11px] font-bold tracking-[0.5em] text-gray-400 uppercase">
+        <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.35em] sm:tracking-[0.5em] text-gray-400 uppercase">
           SDM APE LAB
         </span>
       </div>
 
-      <div className="flex gap-12 items-center">
+      <div className="flex flex-wrap gap-6 md:gap-12 items-center">
         <button 
           onClick={() => setView('ABOUT')}
-          className={`text-[11px] tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
+          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
             currentView === 'ABOUT' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
           }`}
         >
@@ -103,7 +103,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
         </button>
         <button 
           onClick={() => setView('ARCHIVE')}
-          className={`text-[11px] tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
+          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
             currentView === 'ARCHIVE' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
           }`}
         >
@@ -111,7 +111,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
         </button>
         <button 
           onClick={() => setView('GUESTBOOK')}
-          className={`text-[11px] tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
+          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
             currentView === 'GUESTBOOK' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
           }`}
         >
