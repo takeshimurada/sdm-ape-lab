@@ -95,24 +95,24 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, setView, onLogoClick }) =>
       <div className="flex flex-wrap gap-6 md:gap-12 items-center">
         <button 
           onClick={() => setView('ABOUT')}
-          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
-            currentView === 'ABOUT' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
+          className={`py-3 text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none touch-manipulation ${
+            currentView === 'ABOUT' ? 'text-white font-medium' : 'text-gray-600 hover:text-white active:text-white/90 font-light'
           }`}
         >
           ABOUT
         </button>
         <button 
           onClick={() => setView('ARCHIVE')}
-          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
-            currentView === 'ARCHIVE' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
+          className={`py-3 text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none touch-manipulation ${
+            currentView === 'ARCHIVE' ? 'text-white font-medium' : 'text-gray-600 hover:text-white active:text-white/90 font-light'
           }`}
         >
           ARCHIVE
         </button>
         <button 
           onClick={() => setView('GUESTBOOK')}
-          className={`text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none ${
-            currentView === 'GUESTBOOK' ? 'text-white font-medium' : 'text-gray-600 hover:text-white font-light'
+          className={`py-3 text-[10px] sm:text-[11px] tracking-[0.2em] sm:tracking-[0.4em] transition-all uppercase pointer-events-auto cursor-none touch-manipulation ${
+            currentView === 'GUESTBOOK' ? 'text-white font-medium' : 'text-gray-600 hover:text-white active:text-white/90 font-light'
           }`}
         >
           SAY HI TO ALIEN

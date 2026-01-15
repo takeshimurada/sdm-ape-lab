@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'HOME' | 'ABOUT' | 'ARCHIVE' | 'ADMIN' | 'GUESTBOOK'>('HOME');
   const [aboutText, setAboutText] = useState('01010101 01010101 01010101'); // Start with binary placeholder
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // Ultra-fast cursor using direct DOM manipulation with CSS transforms
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -105,13 +106,20 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Detect touch device
+    const checkTouchDevice = () => {
+      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(hasTouchScreen);
+    };
+    checkTouchDevice();
+
     // Check URL parameter for admin access: ?admin
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('admin')) {
       promptAdminPassword();
     }
 
-    // Ultra-fast cursor movement using RAF for 60fps+ performance
+    // Ultra-fast cursor movement using RAF for 60fps+ performance (desktop only)
     let rafId: number;
     let mousePos = { x: -100, y: -100 };
 
@@ -121,7 +129,7 @@ const App: React.FC = () => {
     };
 
     const updateCursor = () => {
-      if (cursorRef.current) {
+      if (cursorRef.current && !isTouchDevice) {
         // Direct style manipulation - bypasses ALL React overhead
         cursorRef.current.style.transform = `translate3d(${mousePos.x}px, ${mousePos.y}px, 0) translate(-50%, -50%)`;
       }
@@ -157,19 +165,20 @@ const App: React.FC = () => {
       cancelAnimationFrame(rafId);
       clearTimeout(timer);
     };
-  }, [promptAdminPassword]);
+  }, [promptAdminPassword, isTouchDevice]);
 
   return (
     <div className="relative w-full h-[100dvh] min-h-[100dvh] bg-[#010101] text-white overflow-hidden select-none font-sans cursor-none">
-      {/* Ultra-fast Mouse Follow Glow - Direct DOM manipulation */}
-      <div
-        ref={cursorRef}
-        className="fixed top-0 left-0 z-[9999] pointer-events-none"
-        style={{ 
-          transform: 'translate(-100px, -100px) translate(-50%, -50%)',
-          willChange: 'transform'
-        }}
-      >
+      {/* Ultra-fast Mouse Follow Glow - Desktop only */}
+      {!isTouchDevice && (
+        <div
+          ref={cursorRef}
+          className="fixed top-0 left-0 z-[9999] pointer-events-none"
+          style={{ 
+            transform: 'translate(-100px, -100px) translate(-50%, -50%)',
+            willChange: 'transform'
+          }}
+        >
         <div className="relative flex items-center justify-center">
           {/* Subtle Ambient Glow - Always present */}
           <motion.div 
@@ -217,6 +226,7 @@ const App: React.FC = () => {
           />
         </div>
       </div>
+      )}
 
       <AnimatePresence>
         {!isLoaded && (

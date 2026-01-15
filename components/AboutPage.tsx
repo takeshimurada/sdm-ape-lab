@@ -153,7 +153,9 @@ const SocialLink: React.FC<{ href: string; icon: React.ReactNode; isMail?: boole
       onClick={(e) => e.stopPropagation()} 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex items-center justify-center p-4 sm:p-6 transition-all duration-500 cursor-none pointer-events-auto"
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
+      className="group relative flex items-center justify-center p-4 sm:p-6 transition-all duration-500 cursor-none pointer-events-auto touch-manipulation min-w-[44px] min-h-[44px]"
     >
       <SocialIcon3D icon={icon} isHovered={isHovered} />
     </a>
@@ -270,12 +272,14 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                       }}
                       onMouseEnter={() => setIsHoveringBtn(true)}
                       onMouseLeave={() => setIsHoveringBtn(false)}
+                      onTouchStart={() => setIsHoveringBtn(true)}
+                      onTouchEnd={() => setIsHoveringBtn(false)}
                       onClick={(e) => { 
                         e.stopPropagation(); 
                         console.log('????? button clicked!');
                         onTranslateSystem(); 
                       }}
-                      className="cursor-none pointer-events-auto text-[clamp(28px,6vw,48px)]"
+                      className="cursor-none pointer-events-auto text-[clamp(28px,6vw,48px)] touch-manipulation"
                       style={{ 
                         display: 'inline-block',
                         fontWeight: 900,

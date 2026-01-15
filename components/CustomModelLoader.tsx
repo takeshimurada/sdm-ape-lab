@@ -11,8 +11,9 @@ interface CustomModelLoaderProps {
 
 // Constants for 3D model configuration
 const MODEL_CONFIG = {
-  TARGET_SCALE: 3.5, // 더 크게 (기존 2.5 → 3.5)
-  TARGET_SCALE_MOBILE: 3.0, // 모바일도 크게 (기존 2.0 → 3.0)
+  TARGET_SCALE: 3.5,        // 데스크톱 (1024px 이상)
+  TARGET_SCALE_TABLET: 2.8, // 태블릿 (768px ~ 1024px)
+  TARGET_SCALE_MOBILE: 2.0, // 모바일 (768px 미만)
   ENV_MAP_INTENSITY: 0.15,
   ROUGHNESS: 0.85,
   METALNESS: 0.0,
@@ -261,8 +262,12 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   const [loadError, setLoadError] = useState<string | null>(null);
   const groupRef = useRef<THREE.Group>(null);
   
-  const { mouse, viewport } = useThree();
+  const { mouse, viewport, gl } = useThree();
   const [scale, setScale] = useState(1);
+  
+  // Touch gesture support
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchRotationRef = useRef({ x: 0, y: 0 });
 
   // Load model with GLTFLoader directly
   useEffect(() => {
@@ -300,15 +305,62 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
       });
   }, [url]);
 
+  // Touch event handlers
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        touchStartRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1 && touchStartRef.current) {
+        const deltaX = e.touches[0].clientX - touchStartRef.current.x;
+        const deltaY = e.touches[0].clientY - touchStartRef.current.y;
+        
+        // Convert touch delta to rotation (similar sensitivity to mouse)
+        touchRotationRef.current.x += deltaY * 0.005;
+        touchRotationRef.current.y += deltaX * 0.005;
+        
+        touchStartRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        };
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartRef.current = null;
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
+    canvas.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [gl]);
+
   useLayoutEffect(() => {
     if (scene) {
       const box = new THREE.Box3().setFromObject(scene);
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       
-      // 반응형 스케일: 화면 크기에 따라 조정
+      // 반응형 스케일: 화면 크기에 따라 조정 (모바일 < 768px, 태블릿 768-1024px, 데스크톱 > 1024px)
       const isMobile = viewport.width < 768;
-      const baseScale = isMobile ? MODEL_CONFIG.TARGET_SCALE_MOBILE : MODEL_CONFIG.TARGET_SCALE;
+      const isTablet = viewport.width >= 768 && viewport.width < 1024;
+      const baseScale = isMobile 
+        ? MODEL_CONFIG.TARGET_SCALE_MOBILE 
+        : (isTablet ? MODEL_CONFIG.TARGET_SCALE_TABLET : MODEL_CONFIG.TARGET_SCALE);
       const targetScale = baseScale / maxDim;
       
       setScale(targetScale);
@@ -339,10 +391,26 @@ const CustomModelLoader: React.FC<CustomModelLoaderProps> = ({ url, onNosePress 
   useFrame(() => {
     if (!groupRef.current) return;
     
-    const targetX = -(mouse.y * viewport.height) / ANIMATION_CONFIG.MOUSE_SENSITIVITY;
-    const targetY = (mouse.x * viewport.width) / ANIMATION_CONFIG.MOUSE_SENSITIVITY;
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, ANIMATION_CONFIG.LERP_SPEED);
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
+    // Use touch rotation if available, otherwise use mouse
+    let targetX, targetY;
+    
+    if (touchStartRef.current) {
+      // Touch mode: use accumulated touch rotation
+      targetX = touchRotationRef.current.x;
+      targetY = touchRotationRef.current.y;
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, ANIMATION_CONFIG.LERP_SPEED);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
+    } else {
+      // Mouse mode: follow cursor
+      targetX = -(mouse.y * viewport.height) / ANIMATION_CONFIG.MOUSE_SENSITIVITY;
+      targetY = (mouse.x * viewport.width) / ANIMATION_CONFIG.MOUSE_SENSITIVITY;
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, ANIMATION_CONFIG.LERP_SPEED);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, ANIMATION_CONFIG.LERP_SPEED);
+      
+      // Gradually decay touch rotation when using mouse
+      touchRotationRef.current.x = THREE.MathUtils.lerp(touchRotationRef.current.x, targetX, 0.02);
+      touchRotationRef.current.y = THREE.MathUtils.lerp(touchRotationRef.current.y, targetY, 0.02);
+    }
   });
 
   // Show error or loading state
