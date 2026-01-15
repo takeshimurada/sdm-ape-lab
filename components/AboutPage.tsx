@@ -187,7 +187,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
       className="relative w-full h-full flex items-center justify-center bg-[#010101] cursor-none"
     >
       {/* 3D Background - Only render if WebGL is supported */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 pointer-events-none top-8 sm:top-0">
         <ErrorBoundary fallback={<div className="w-full h-full bg-gradient-to-br from-pink-900/20 to-purple-900/20"></div>}>
           <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true, toneMapping: 3 }}>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={30} />

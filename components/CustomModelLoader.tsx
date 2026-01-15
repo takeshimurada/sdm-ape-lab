@@ -13,7 +13,7 @@ interface CustomModelLoaderProps {
 const MODEL_CONFIG = {
   TARGET_SCALE: 4.5,        // 데스크톱 (1024px 이상)
   TARGET_SCALE_TABLET: 2.8, // 태블릿 (768px ~ 1024px)
-  TARGET_SCALE_MOBILE: 2.0, // 모바일 (768px 미만)
+  TARGET_SCALE_MOBILE: 1.7, // 모바일 (768px 미만)
   ENV_MAP_INTENSITY: 0.15,
   ROUGHNESS: 0.85,
   METALNESS: 0.0,
