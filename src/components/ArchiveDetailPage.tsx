@@ -475,50 +475,52 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
             onClick={closeZoom}
           >
             <div className="flex h-full flex-col">
-              <div
-                className="flex items-center justify-between border-b border-white/10 px-4 py-3"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <p className="truncate pr-4 text-xs text-white/70">{zoomedImage.title}</p>
-                <div className="flex items-center gap-2">
-                  <span className="min-w-14 text-center text-xs font-mono text-white/70">
-                    {Math.round(zoomLevel * 100)}%
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleZoomOut}
-                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+              <div className="relative flex-1 overflow-auto">
+                <div className="sticky top-0 z-10 flex justify-center px-4 pt-4">
+                  <div
+                    className="flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-black/75 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    -
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoomLevel(BASE_ZOOM)}
-                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleZoomIn}
-                    disabled={zoomLevel >= MAX_ZOOM}
-                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeZoom}
-                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
-                  >
-                    Close
-                  </button>
+                    <p className="max-w-[220px] truncate px-1 text-xs text-white/70">
+                      {zoomedImage.title}
+                    </p>
+                    <span className="min-w-14 text-center text-xs font-mono text-white/70">
+                      {Math.round(zoomLevel * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleZoomOut}
+                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+                    >
+                      -
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoomLevel(BASE_ZOOM)}
+                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleZoomIn}
+                      disabled={zoomLevel >= MAX_ZOOM}
+                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeZoom}
+                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex-1 overflow-auto">
                 <div
-                  className={`flex min-h-full min-w-full p-4 md:p-8 ${
+                  className={`flex min-h-full min-w-full px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
                     zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
                   }`}
                   onClick={(e) => e.stopPropagation()}
