@@ -313,7 +313,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
         return;
       }
 
-      if (!hasMultipleMedia || zoomLevel > BASE_ZOOM) {
+      if (!hasMultipleMedia) {
         return;
       }
 
@@ -328,7 +328,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasMultipleMedia, onClose, showNextMedia, showPreviousMedia, zoomLevel]);
+  }, [hasMultipleMedia, onClose, showNextMedia, showPreviousMedia]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -404,18 +404,9 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   <div
                     className="relative overflow-hidden"
                     onTouchStart={(e) => {
-                      if (zoomLevel > BASE_ZOOM && currentMedia.type === 'image') {
-                        return;
-                      }
-
                       touchStartX.current = e.touches[0]?.clientX ?? null;
                     }}
                     onTouchEnd={(e) => {
-                      if (zoomLevel > BASE_ZOOM && currentMedia.type === 'image') {
-                        touchStartX.current = null;
-                        return;
-                      }
-
                       const startX = touchStartX.current;
                       const endX = e.changedTouches[0]?.clientX ?? null;
                       touchStartX.current = null;
@@ -466,7 +457,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     <button
                       type="button"
                       onClick={showPreviousMedia}
-                      disabled={currentMediaIndex === 0 || (currentMedia.type === 'image' && zoomLevel > BASE_ZOOM)}
+                      disabled={currentMediaIndex === 0}
                       className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="Previous media"
                     >
@@ -475,10 +466,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     <button
                       type="button"
                       onClick={showNextMedia}
-                      disabled={
-                        currentMediaIndex === mediaItems.length - 1 ||
-                        (currentMedia.type === 'image' && zoomLevel > BASE_ZOOM)
-                      }
+                      disabled={currentMediaIndex === mediaItems.length - 1}
                       className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="Next media"
                     >
@@ -492,12 +480,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                         key={`${media.url}-${index}`}
                         type="button"
                         onClick={() => moveToMedia(index)}
-                        disabled={zoomLevel > BASE_ZOOM && currentMedia.type === 'image'}
                         className={`h-2.5 rounded-full transition-all ${
                           index === currentMediaIndex
                             ? 'w-8 bg-white'
                             : 'w-2.5 bg-white/25 hover:bg-white/45'
-                        } disabled:cursor-not-allowed disabled:opacity-40`}
+                        }`}
                         aria-label={`Go to media ${index + 1}`}
                       />
                     ))}
