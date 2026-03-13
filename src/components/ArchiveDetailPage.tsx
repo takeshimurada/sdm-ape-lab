@@ -166,7 +166,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const BASE_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.25;
-  const BASE_IMAGE_MAX_WIDTH = 900;
+  const BASE_IMAGE_WIDTH = 'min(900px, calc(100vw - 4rem))';
   const BASE_IMAGE_MAX_HEIGHT = 'calc(100vh - 120px)';
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(BASE_ZOOM);
@@ -272,12 +272,15 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/95 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/35 backdrop-blur-[14px]"
       onClick={onClose}
     >
-      <div className="flex min-h-screen items-start justify-center px-4 py-12 md:px-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_42%),linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.55))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55),transparent_16%,transparent_84%,rgba(0,0,0,0.55))]" />
+
+      <div className="relative flex min-h-screen items-start justify-center px-4 py-10 md:px-8 md:py-12">
         <article
-          className="mx-auto w-full max-w-6xl"
+          className="mx-auto w-full max-w-6xl rounded-[28px] border border-white/10 bg-black/72 px-5 py-5 shadow-[0_35px_120px_rgba(0,0,0,0.45)] backdrop-blur-md md:px-8 md:py-8"
           onClick={(e) => e.stopPropagation()}
         >
           <header className="mb-12">
@@ -476,30 +479,17 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
           >
             <div className="flex h-full flex-col">
               <div className="relative flex-1 overflow-auto">
-                <div className="sticky top-0 z-10 flex justify-center px-4 pt-4">
+                <div className="pointer-events-none absolute inset-x-0 top-6 z-10 flex justify-center px-4">
                   <div
-                    className="flex flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-black/75 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+                    className="pointer-events-auto flex items-center justify-center gap-2 rounded-full border border-white/10 bg-black/72 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <p className="max-w-[220px] truncate px-1 text-xs text-white/70">
-                      {zoomedImage.title}
-                    </p>
-                    <span className="min-w-14 text-center text-xs font-mono text-white/70">
-                      {Math.round(zoomLevel * 100)}%
-                    </span>
                     <button
                       type="button"
                       onClick={handleZoomOut}
                       className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
                     >
                       -
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setZoomLevel(BASE_ZOOM)}
-                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
-                    >
-                      Reset
                     </button>
                     <button
                       type="button"
@@ -520,7 +510,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                 </div>
 
                 <div
-                  className={`flex min-h-full min-w-full px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
+                  className={`relative flex min-h-full min-w-full px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
                     zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
                   }`}
                   onClick={(e) => e.stopPropagation()}
@@ -531,8 +521,8 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     className="h-auto max-w-none rounded-sm object-contain"
                     decoding="async"
                     style={{
-                      width: zoomLevel === BASE_ZOOM ? 'auto' : `${zoomLevel * 100}%`,
-                      maxWidth: zoomLevel === BASE_ZOOM ? `${BASE_IMAGE_MAX_WIDTH}px` : 'none',
+                      width: zoomLevel === BASE_ZOOM ? BASE_IMAGE_WIDTH : `calc(${BASE_IMAGE_WIDTH} * ${zoomLevel})`,
+                      minWidth: zoomLevel === BASE_ZOOM ? BASE_IMAGE_WIDTH : `calc(${BASE_IMAGE_WIDTH} * ${zoomLevel})`,
                       maxHeight: zoomLevel === BASE_ZOOM ? BASE_IMAGE_MAX_HEIGHT : 'none',
                     }}
                   />
