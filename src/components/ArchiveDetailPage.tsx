@@ -269,6 +269,15 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
     updateZoom(nextZoom);
   };
 
+  const handleZoomBackdropAction = () => {
+    if (zoomLevel > BASE_ZOOM) {
+      updateZoom(BASE_ZOOM);
+      return;
+    }
+
+    closeZoom();
+  };
+
   const moveToMedia = (nextIndex: number) => {
     if (nextIndex < 0 || nextIndex >= mediaItems.length || nextIndex === currentMediaIndex) {
       return;
@@ -552,7 +561,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[80] bg-black/95"
-            onClick={closeZoom}
+            onClick={handleZoomBackdropAction}
           >
             <div className="flex h-full flex-col">
               <div className="relative flex-1 overflow-auto">
@@ -593,7 +602,13 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   className={`relative flex min-h-full min-w-full overflow-hidden px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
                     zoomLevel > BASE_ZOOM ? 'cursor-grab items-center justify-center active:cursor-grabbing' : 'items-center justify-center'
                   }`}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    if (e.target === e.currentTarget) {
+                      handleZoomBackdropAction();
+                    }
+                  }}
                   onWheel={(e) => {
                     e.preventDefault();
 
@@ -695,6 +710,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     alt={zoomedImage.title}
                     className="h-auto max-w-none rounded-sm object-contain"
                     decoding="async"
+                    onClick={(e) => e.stopPropagation()}
                     onLoad={(e) => {
                       setImageNaturalSize({
                         width: e.currentTarget.naturalWidth || 1,
