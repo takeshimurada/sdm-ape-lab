@@ -479,9 +479,12 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
           >
             <div className="flex h-full flex-col">
               <div className="relative flex-1 overflow-auto">
-                <div className="pointer-events-none absolute inset-x-0 top-6 z-10 flex justify-center px-4">
+                <div
+                  className="absolute inset-x-0 top-6 z-20 flex justify-center px-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div
-                    className="pointer-events-auto flex items-center justify-center gap-2 rounded-full border border-white/10 bg-black/72 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+                    className="flex items-center justify-center gap-2 rounded-full border border-white/10 bg-black/72 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
