@@ -609,22 +609,6 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                       handleZoomBackdropAction();
                     }
                   }}
-                  onWheel={(e) => {
-                    e.preventDefault();
-
-                    if (e.deltaY < 0) {
-                      updateZoom(zoomLevel + ZOOM_STEP);
-                      return;
-                    }
-
-                    const nextZoom = zoomLevel - ZOOM_STEP;
-                    if (nextZoom < BASE_ZOOM) {
-                      closeZoom();
-                      return;
-                    }
-
-                    updateZoom(nextZoom);
-                  }}
                   onPointerDown={(e) => {
                     if (zoomLevel <= BASE_ZOOM) {
                       return;
