@@ -26,6 +26,11 @@ interface MediaItem {
   url: string;
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 const KOREAN_FONT = 'Dotum, "돋움", sans-serif';
 const DEFAULT_FONT = 'system-ui, -apple-system, sans-serif';
 
@@ -174,7 +179,23 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1440
   );
+  const [viewportHeight, setViewportHeight] = useState(
+    typeof window !== 'undefined' ? window.innerHeight : 900
+  );
+  const [zoomOffset, setZoomOffset] = useState<Point>({ x: 0, y: 0 });
+  const [imageNaturalSize, setImageNaturalSize] = useState({ width: 1, height: 1 });
+  const [isDraggingZoomedImage, setIsDraggingZoomedImage] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const zoomDragStart = useRef<{
+    pointerId: number;
+    origin: Point;
+    initialOffset: Point;
+  } | null>(null);
+  const pinchState = useRef<{
+    initialDistance: number;
+    initialZoom: number;
+    initialOffset: Point;
+  } | null>(null);
 
   const mediaItems: MediaItem[] =
     item.type !== 'text'
@@ -190,19 +211,62 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const closeZoom = () => {
     setZoomedImage(null);
     setZoomLevel(BASE_ZOOM);
+    setZoomOffset({ x: 0, y: 0 });
+  };
+
+  const getFittedImageSize = (zoom = zoomLevel) => {
+    const maxWidth = Math.max(280, Math.min(900, viewportWidth - 64));
+    const maxHeight = Math.max(240, viewportHeight - 120);
+    const widthRatio = maxWidth / imageNaturalSize.width;
+    const heightRatio = maxHeight / imageNaturalSize.height;
+    const fittedScale = Math.min(widthRatio, heightRatio, 1);
+    const baseWidth = imageNaturalSize.width * fittedScale;
+    const baseHeight = imageNaturalSize.height * fittedScale;
+
+    return {
+      width: baseWidth * zoom,
+      height: baseHeight * zoom,
+      baseWidth,
+      baseHeight,
+    };
+  };
+
+  const clampOffset = (offset: Point, zoom = zoomLevel) => {
+    const { width, height } = getFittedImageSize(zoom);
+    const horizontalLimit = Math.max(0, (width - viewportWidth) / 2);
+    const verticalLimit = Math.max(0, (height - viewportHeight) / 2);
+
+    return {
+      x: Math.min(horizontalLimit, Math.max(-horizontalLimit, offset.x)),
+      y: Math.min(verticalLimit, Math.max(-verticalLimit, offset.y)),
+    };
+  };
+
+  const updateZoom = (nextZoom: number, nextOffset?: Point) => {
+    const normalizedZoom = Math.max(BASE_ZOOM, Math.min(MAX_ZOOM, Number(nextZoom.toFixed(2))));
+    setZoomLevel(normalizedZoom);
+
+    if (normalizedZoom <= BASE_ZOOM) {
+      setZoomOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    setZoomOffset((prev) => clampOffset(nextOffset ?? prev, normalizedZoom));
   };
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(MAX_ZOOM, Number((prev + ZOOM_STEP).toFixed(2))));
+    updateZoom(zoomLevel + ZOOM_STEP);
   };
 
   const handleZoomOut = () => {
-    if (zoomLevel <= BASE_ZOOM) {
+    const nextZoom = zoomLevel - ZOOM_STEP;
+
+    if (nextZoom < BASE_ZOOM) {
       closeZoom();
       return;
     }
 
-    setZoomLevel((prev) => Math.max(BASE_ZOOM, Number((prev - ZOOM_STEP).toFixed(2))));
+    updateZoom(nextZoom);
   };
 
   const moveToMedia = (nextIndex: number) => {
@@ -272,13 +336,13 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   useEffect(() => {
     const handleResize = () => {
       setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+      setZoomOffset((prev) => clampOffset(prev));
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const baseZoomWidth = Math.max(280, Math.min(900, viewportWidth - 64));
+  }, [imageNaturalSize.height, imageNaturalSize.width, zoomLevel]);
 
   return (
     <motion.div
@@ -527,19 +591,131 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
 
                 <div
                   className={`relative flex min-h-full min-w-full overflow-hidden px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
-                    zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
+                    zoomLevel > BASE_ZOOM ? 'cursor-grab items-center justify-center active:cursor-grabbing' : 'items-center justify-center'
                   }`}
                   onClick={(e) => e.stopPropagation()}
+                  onWheel={(e) => {
+                    e.preventDefault();
+
+                    if (e.deltaY < 0) {
+                      updateZoom(zoomLevel + ZOOM_STEP);
+                      return;
+                    }
+
+                    const nextZoom = zoomLevel - ZOOM_STEP;
+                    if (nextZoom < BASE_ZOOM) {
+                      closeZoom();
+                      return;
+                    }
+
+                    updateZoom(nextZoom);
+                  }}
+                  onPointerDown={(e) => {
+                    if (zoomLevel <= BASE_ZOOM) {
+                      return;
+                    }
+
+                    zoomDragStart.current = {
+                      pointerId: e.pointerId,
+                      origin: { x: e.clientX, y: e.clientY },
+                      initialOffset: zoomOffset,
+                    };
+                    setIsDraggingZoomedImage(true);
+                  }}
+                  onPointerMove={(e) => {
+                    const dragState = zoomDragStart.current;
+                    if (!dragState || dragState.pointerId !== e.pointerId || zoomLevel <= BASE_ZOOM) {
+                      return;
+                    }
+
+                    setZoomOffset(
+                      clampOffset({
+                        x: dragState.initialOffset.x + (e.clientX - dragState.origin.x),
+                        y: dragState.initialOffset.y + (e.clientY - dragState.origin.y),
+                      })
+                    );
+                  }}
+                  onPointerUp={(e) => {
+                    if (zoomDragStart.current?.pointerId === e.pointerId) {
+                      zoomDragStart.current = null;
+                      setIsDraggingZoomedImage(false);
+                    }
+                  }}
+                  onPointerCancel={(e) => {
+                    if (zoomDragStart.current?.pointerId === e.pointerId) {
+                      zoomDragStart.current = null;
+                      setIsDraggingZoomedImage(false);
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    if (e.touches.length !== 2) {
+                      pinchState.current = null;
+                      return;
+                    }
+
+                    const [firstTouch, secondTouch] = Array.from(e.touches);
+                    const distance = Math.hypot(
+                      secondTouch.clientX - firstTouch.clientX,
+                      secondTouch.clientY - firstTouch.clientY
+                    );
+
+                    pinchState.current = {
+                      initialDistance: distance,
+                      initialZoom: zoomLevel,
+                      initialOffset: zoomOffset,
+                    };
+                  }}
+                  onTouchMove={(e) => {
+                    if (e.touches.length !== 2 || !pinchState.current) {
+                      return;
+                    }
+
+                    e.preventDefault();
+                    const [firstTouch, secondTouch] = Array.from(e.touches);
+                    const distance = Math.hypot(
+                      secondTouch.clientX - firstTouch.clientX,
+                      secondTouch.clientY - firstTouch.clientY
+                    );
+
+                    const nextZoom = pinchState.current.initialZoom * (distance / pinchState.current.initialDistance);
+                    updateZoom(nextZoom, pinchState.current.initialOffset);
+                  }}
+                  onTouchEnd={() => {
+                    if (pinchState.current && zoomLevel <= BASE_ZOOM) {
+                      setZoomOffset({ x: 0, y: 0 });
+                    }
+
+                    if (pinchState.current) {
+                      pinchState.current = null;
+                    }
+                  }}
                 >
                   <img
                     src={zoomedImage.src}
                     alt={zoomedImage.title}
                     className="h-auto max-w-none rounded-sm object-contain"
                     decoding="async"
+                    onLoad={(e) => {
+                      setImageNaturalSize({
+                        width: e.currentTarget.naturalWidth || 1,
+                        height: e.currentTarget.naturalHeight || 1,
+                      });
+                    }}
+                    onDoubleClick={() => {
+                      if (zoomLevel > BASE_ZOOM) {
+                        updateZoom(BASE_ZOOM);
+                        return;
+                      }
+
+                      updateZoom(2);
+                    }}
                     style={{
-                      width: `${Math.round(baseZoomWidth * zoomLevel)}px`,
-                      minWidth: `${Math.round(baseZoomWidth * zoomLevel)}px`,
-                      maxHeight: zoomLevel === BASE_ZOOM ? BASE_IMAGE_MAX_HEIGHT : 'none',
+                      width: `${Math.round(getFittedImageSize().baseWidth)}px`,
+                      maxHeight: BASE_IMAGE_MAX_HEIGHT,
+                      transform: `translate(${zoomOffset.x}px, ${zoomOffset.y}px) scale(${zoomLevel})`,
+                      transformOrigin: 'center center',
+                      transition: isDraggingZoomedImage ? 'none' : 'transform 0.18s ease-out',
+                      touchAction: 'none',
                     }}
                   />
                 </div>
