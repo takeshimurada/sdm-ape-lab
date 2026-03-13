@@ -94,6 +94,12 @@ const normalizeUrl = (url: string): string => {
   return url;
 };
 
+const preloadImage = (url: string) => {
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = normalizeUrl(url);
+};
+
 const MediaRenderer: React.FC<{
   type: MediaItem['type'];
   url: string;
@@ -143,6 +149,8 @@ const MediaRenderer: React.FC<{
             src={normalizedUrl}
             alt={title}
             className="w-full rounded-sm"
+            loading="eager"
+            decoding="async"
             style={{ maxHeight: '90vh', objectFit: 'contain' }}
           />
         </button>
@@ -211,6 +219,24 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
     setCurrentMediaIndex(0);
     setSlideDirection(1);
   }, [item.id, item.url, item.media]);
+
+  useEffect(() => {
+    if (!currentMedia || currentMedia.type !== 'image') {
+      return;
+    }
+
+    preloadImage(currentMedia.url);
+
+    const previousMedia = mediaItems[currentMediaIndex - 1];
+    if (previousMedia?.type === 'image') {
+      preloadImage(previousMedia.url);
+    }
+
+    const nextMedia = mediaItems[currentMediaIndex + 1];
+    if (nextMedia?.type === 'image') {
+      preloadImage(nextMedia.url);
+    }
+  }, [currentMedia, currentMediaIndex, mediaItems]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -497,6 +523,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     src={zoomedImage.src}
                     alt={zoomedImage.title}
                     className="h-auto max-w-none rounded-sm object-contain"
+                    decoding="async"
                     style={{
                       width: zoomLevel === BASE_ZOOM ? 'auto' : `${zoomLevel * 100}%`,
                       maxWidth: zoomLevel === BASE_ZOOM ? `${BASE_IMAGE_MAX_WIDTH}px` : 'none',

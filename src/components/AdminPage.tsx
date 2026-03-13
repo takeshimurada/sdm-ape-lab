@@ -77,6 +77,87 @@ const getArchiveBackendUrl = () => {
   }
 };
 
+const COMPRESSIBLE_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
+
+const readImageDimensions = (file: File): Promise<{ width: number; height: number; image: HTMLImageElement }> =>
+  new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      resolve({ width: image.naturalWidth, height: image.naturalHeight, image });
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error(`Failed to read image: ${file.name}`));
+    };
+
+    image.src = objectUrl;
+  });
+
+const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Image compression failed'));
+        return;
+      }
+
+      resolve(blob);
+    }, type, quality);
+  });
+
+const getCompressedImageName = (filename: string) => filename.replace(/\.[^.]+$/, '') + '.webp';
+
+const compressImageFile = async (file: File): Promise<File> => {
+  if (!COMPRESSIBLE_IMAGE_TYPES.has(file.type)) {
+    return file;
+  }
+
+  const { width, height, image } = await readImageDimensions(file);
+  const maxDimension = 2200;
+  const longestSide = Math.max(width, height);
+
+  if (longestSide <= maxDimension && file.size <= 1.5 * 1024 * 1024) {
+    return file;
+  }
+
+  const scale = Math.min(1, maxDimension / longestSide);
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    return file;
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  try {
+    const blob = await canvasToBlob(canvas, 'image/webp', 0.82);
+
+    if (blob.size >= file.size) {
+      return file;
+    }
+
+    return new File([blob], getCompressedImageName(file.name), {
+      type: 'image/webp',
+      lastModified: Date.now(),
+    });
+  } catch {
+    return file;
+  }
+};
+
 const getPrimaryMediaType = (item: ArchiveItem): ArchiveMediaItem['type'] => {
   if (item.type === 'video' || item.type === 'youtube') {
     return item.type;
@@ -373,7 +454,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
       // 여러 파일 순차 업로드
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const originalFile = files[i];
+        const file = originalFile.type.startsWith('image/')
+          ? await compressImageFile(originalFile)
+          : originalFile;
         console.log(`📤 Uploading ${i + 1}/${files.length}:`, file.name);
 
         const formData = new FormData();
