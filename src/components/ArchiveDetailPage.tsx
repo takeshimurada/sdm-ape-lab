@@ -26,11 +26,6 @@ interface MediaItem {
   url: string;
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
 const KOREAN_FONT = 'Dotum, "돋움", sans-serif';
 const DEFAULT_FONT = 'system-ui, -apple-system, sans-serif';
 
@@ -109,8 +104,25 @@ const MediaRenderer: React.FC<{
   type: MediaItem['type'];
   url: string;
   title: string;
-  onOpenImage?: (src: string, title: string) => void;
-}> = ({ type, url, title, onOpenImage }) => {
+  zoomLevel?: number;
+  canZoomIn?: boolean;
+  canZoomOut?: boolean;
+  imageWidth?: number;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onImageLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+}> = ({
+  type,
+  url,
+  title,
+  zoomLevel = 1,
+  canZoomIn = false,
+  canZoomOut = false,
+  imageWidth,
+  onZoomIn,
+  onZoomOut,
+  onImageLoad,
+}) => {
   if (type === 'youtube') {
     return (
       <div className="mb-8 aspect-video w-full overflow-hidden rounded-sm bg-black">
@@ -145,21 +157,51 @@ const MediaRenderer: React.FC<{
 
     return (
       <div className="mb-8 w-full">
-        <button
-          type="button"
-          onClick={() => onOpenImage?.(normalizedUrl, title)}
-          className="block w-full cursor-zoom-in"
+        <div className="mb-3 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onZoomOut}
+            disabled={!canZoomOut}
+            className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            -
+          </button>
+          <span className="min-w-14 text-center text-xs font-mono text-white/60">
+            {Math.round(zoomLevel * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={onZoomIn}
+            disabled={!canZoomIn}
+            className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            +
+          </button>
+        </div>
+
+        <div
+          className="overflow-auto rounded-sm bg-black/35"
+          style={{ maxHeight: '85vh' }}
         >
-          <img
-            src={normalizedUrl}
-            alt={title}
-            className="w-full rounded-sm"
-            loading="eager"
-            decoding="async"
-            style={{ maxHeight: '90vh', objectFit: 'contain' }}
-          />
-        </button>
-        <p className="mt-2 text-right text-xs text-white/60">Click image to open. Use buttons to zoom.</p>
+          <div className="flex min-w-full justify-center">
+            <img
+              src={normalizedUrl}
+              alt={title}
+              className="block h-auto max-w-none rounded-sm"
+              loading="eager"
+              decoding="async"
+              onLoad={onImageLoad}
+              style={{
+                width: imageWidth ? `${Math.round(imageWidth)}px` : '100%',
+                minWidth: imageWidth ? `${Math.round(imageWidth)}px` : '100%',
+              }}
+            />
+          </div>
+        </div>
+
+        <p className="mt-2 text-right text-xs text-white/60">
+          Use + / - buttons to zoom. Scroll to move when enlarged.
+        </p>
       </div>
     );
   }
@@ -171,8 +213,6 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const BASE_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.25;
-  const BASE_IMAGE_MAX_HEIGHT = 'calc(100vh - 120px)';
-  const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(BASE_ZOOM);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
@@ -182,20 +222,8 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const [viewportHeight, setViewportHeight] = useState(
     typeof window !== 'undefined' ? window.innerHeight : 900
   );
-  const [zoomOffset, setZoomOffset] = useState<Point>({ x: 0, y: 0 });
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 1, height: 1 });
-  const [isDraggingZoomedImage, setIsDraggingZoomedImage] = useState(false);
   const touchStartX = useRef<number | null>(null);
-  const zoomDragStart = useRef<{
-    pointerId: number;
-    origin: Point;
-    initialOffset: Point;
-  } | null>(null);
-  const pinchState = useRef<{
-    initialDistance: number;
-    initialZoom: number;
-    initialOffset: Point;
-  } | null>(null);
 
   const mediaItems: MediaItem[] =
     item.type !== 'text'
@@ -208,74 +236,32 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const hasMultipleMedia = mediaItems.length > 1;
   const currentMedia = mediaItems[currentMediaIndex] || null;
 
-  const closeZoom = () => {
-    setZoomedImage(null);
-    setZoomLevel(BASE_ZOOM);
-    setZoomOffset({ x: 0, y: 0 });
-  };
-
   const getFittedImageSize = (zoom = zoomLevel) => {
     const maxWidth = Math.max(280, Math.min(900, viewportWidth - 64));
-    const maxHeight = Math.max(240, viewportHeight - 120);
+    const maxHeight = Math.max(240, viewportHeight - 220);
+
+    if (imageNaturalSize.width <= 1 || imageNaturalSize.height <= 1) {
+      return {
+        width: maxWidth * zoom,
+      };
+    }
+
     const widthRatio = maxWidth / imageNaturalSize.width;
     const heightRatio = maxHeight / imageNaturalSize.height;
     const fittedScale = Math.min(widthRatio, heightRatio, 1);
     const baseWidth = imageNaturalSize.width * fittedScale;
-    const baseHeight = imageNaturalSize.height * fittedScale;
 
     return {
       width: baseWidth * zoom,
-      height: baseHeight * zoom,
-      baseWidth,
-      baseHeight,
     };
-  };
-
-  const clampOffset = (offset: Point, zoom = zoomLevel) => {
-    const { width, height } = getFittedImageSize(zoom);
-    const horizontalLimit = Math.max(0, (width - viewportWidth) / 2);
-    const verticalLimit = Math.max(0, (height - viewportHeight) / 2);
-
-    return {
-      x: Math.min(horizontalLimit, Math.max(-horizontalLimit, offset.x)),
-      y: Math.min(verticalLimit, Math.max(-verticalLimit, offset.y)),
-    };
-  };
-
-  const updateZoom = (nextZoom: number, nextOffset?: Point) => {
-    const normalizedZoom = Math.max(BASE_ZOOM, Math.min(MAX_ZOOM, Number(nextZoom.toFixed(2))));
-    setZoomLevel(normalizedZoom);
-
-    if (normalizedZoom <= BASE_ZOOM) {
-      setZoomOffset({ x: 0, y: 0 });
-      return;
-    }
-
-    setZoomOffset((prev) => clampOffset(nextOffset ?? prev, normalizedZoom));
   };
 
   const handleZoomIn = () => {
-    updateZoom(zoomLevel + ZOOM_STEP);
+    setZoomLevel((prev) => Math.min(MAX_ZOOM, Number((prev + ZOOM_STEP).toFixed(2))));
   };
 
   const handleZoomOut = () => {
-    const nextZoom = zoomLevel - ZOOM_STEP;
-
-    if (nextZoom < BASE_ZOOM) {
-      closeZoom();
-      return;
-    }
-
-    updateZoom(nextZoom);
-  };
-
-  const handleZoomBackdropAction = () => {
-    if (zoomLevel > BASE_ZOOM) {
-      updateZoom(BASE_ZOOM);
-      return;
-    }
-
-    closeZoom();
+    setZoomLevel((prev) => Math.max(BASE_ZOOM, Number((prev - ZOOM_STEP).toFixed(2))));
   };
 
   const moveToMedia = (nextIndex: number) => {
@@ -293,7 +279,14 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   useEffect(() => {
     setCurrentMediaIndex(0);
     setSlideDirection(1);
+    setZoomLevel(BASE_ZOOM);
+    setImageNaturalSize({ width: 1, height: 1 });
   }, [item.id, item.url, item.media]);
+
+  useEffect(() => {
+    setZoomLevel(BASE_ZOOM);
+    setImageNaturalSize({ width: 1, height: 1 });
+  }, [currentMediaIndex]);
 
   useEffect(() => {
     if (!currentMedia || currentMedia.type !== 'image') {
@@ -316,16 +309,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (zoomedImage) {
-          closeZoom();
-          return;
-        }
-
         onClose();
         return;
       }
 
-      if (zoomedImage || !hasMultipleMedia) {
+      if (!hasMultipleMedia || zoomLevel > BASE_ZOOM) {
         return;
       }
 
@@ -340,18 +328,19 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasMultipleMedia, onClose, showNextMedia, showPreviousMedia, zoomedImage]);
+  }, [hasMultipleMedia, onClose, showNextMedia, showPreviousMedia, zoomLevel]);
 
   useEffect(() => {
     const handleResize = () => {
       setViewportWidth(window.innerWidth);
       setViewportHeight(window.innerHeight);
-      setZoomOffset((prev) => clampOffset(prev));
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [imageNaturalSize.height, imageNaturalSize.width, zoomLevel]);
+  }, []);
+
+  const imageDisplayWidth = currentMedia?.type === 'image' ? getFittedImageSize().width : undefined;
 
   return (
     <motion.div
@@ -402,7 +391,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               {hasMultipleMedia && currentMedia ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-4 text-xs text-white/60">
-                    <p>Swipe or use arrows to browse</p>
+                    <p>
+                      {zoomLevel > BASE_ZOOM && currentMedia.type === 'image'
+                        ? 'Scroll to move the enlarged image'
+                        : 'Swipe or use arrows to browse'}
+                    </p>
                     <p className="font-mono">
                       {currentMediaIndex + 1} / {mediaItems.length}
                     </p>
@@ -411,9 +404,18 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   <div
                     className="relative overflow-hidden"
                     onTouchStart={(e) => {
+                      if (zoomLevel > BASE_ZOOM && currentMedia.type === 'image') {
+                        return;
+                      }
+
                       touchStartX.current = e.touches[0]?.clientX ?? null;
                     }}
                     onTouchEnd={(e) => {
+                      if (zoomLevel > BASE_ZOOM && currentMedia.type === 'image') {
+                        touchStartX.current = null;
+                        return;
+                      }
+
                       const startX = touchStartX.current;
                       const endX = e.changedTouches[0]?.clientX ?? null;
                       touchStartX.current = null;
@@ -445,9 +447,17 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                           type={currentMedia.type}
                           url={currentMedia.url}
                           title={item.title}
-                          onOpenImage={(src, title) => {
-                            setZoomedImage({ src, title });
-                            setZoomLevel(BASE_ZOOM);
+                          zoomLevel={zoomLevel}
+                          canZoomIn={currentMedia.type === 'image' && zoomLevel < MAX_ZOOM}
+                          canZoomOut={currentMedia.type === 'image' && zoomLevel > BASE_ZOOM}
+                          imageWidth={imageDisplayWidth}
+                          onZoomIn={handleZoomIn}
+                          onZoomOut={handleZoomOut}
+                          onImageLoad={(e) => {
+                            setImageNaturalSize({
+                              width: e.currentTarget.naturalWidth || 1,
+                              height: e.currentTarget.naturalHeight || 1,
+                            });
                           }}
                         />
                       </motion.div>
@@ -456,7 +466,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     <button
                       type="button"
                       onClick={showPreviousMedia}
-                      disabled={currentMediaIndex === 0}
+                      disabled={currentMediaIndex === 0 || (currentMedia.type === 'image' && zoomLevel > BASE_ZOOM)}
                       className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="Previous media"
                     >
@@ -465,7 +475,10 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     <button
                       type="button"
                       onClick={showNextMedia}
-                      disabled={currentMediaIndex === mediaItems.length - 1}
+                      disabled={
+                        currentMediaIndex === mediaItems.length - 1 ||
+                        (currentMedia.type === 'image' && zoomLevel > BASE_ZOOM)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label="Next media"
                     >
@@ -479,11 +492,12 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                         key={`${media.url}-${index}`}
                         type="button"
                         onClick={() => moveToMedia(index)}
+                        disabled={zoomLevel > BASE_ZOOM && currentMedia.type === 'image'}
                         className={`h-2.5 rounded-full transition-all ${
                           index === currentMediaIndex
                             ? 'w-8 bg-white'
                             : 'w-2.5 bg-white/25 hover:bg-white/45'
-                        }`}
+                        } disabled:cursor-not-allowed disabled:opacity-40`}
                         aria-label={`Go to media ${index + 1}`}
                       />
                     ))}
@@ -496,9 +510,17 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     type={media.type}
                     url={media.url}
                     title={item.title}
-                    onOpenImage={(src, title) => {
-                      setZoomedImage({ src, title });
-                      setZoomLevel(BASE_ZOOM);
+                    zoomLevel={zoomLevel}
+                    canZoomIn={media.type === 'image' && zoomLevel < MAX_ZOOM}
+                    canZoomOut={media.type === 'image' && zoomLevel > BASE_ZOOM}
+                    imageWidth={media.type === 'image' ? imageDisplayWidth : undefined}
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    onImageLoad={(e) => {
+                      setImageNaturalSize({
+                        width: e.currentTarget.naturalWidth || 1,
+                        height: e.currentTarget.naturalHeight || 1,
+                      });
                     }}
                   />
                 ))
@@ -553,177 +575,6 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
           </motion.div>
         </article>
       </div>
-
-      <AnimatePresence>
-        {zoomedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] bg-black/95"
-            onClick={handleZoomBackdropAction}
-          >
-            <div className="flex h-full flex-col">
-              <div className="relative flex-1 overflow-auto">
-                <div
-                  className="absolute inset-x-0 top-6 z-20 flex justify-center px-4"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div
-                    className="flex items-center justify-center gap-2 rounded-full border border-white/10 bg-black/72 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={handleZoomOut}
-                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
-                    >
-                      -
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleZoomIn}
-                      disabled={zoomLevel >= MAX_ZOOM}
-                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeZoom}
-                      className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  className={`relative flex min-h-full min-w-full overflow-hidden px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
-                    zoomLevel > BASE_ZOOM ? 'cursor-grab items-center justify-center active:cursor-grabbing' : 'items-center justify-center'
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-
-                    if (e.target === e.currentTarget) {
-                      handleZoomBackdropAction();
-                    }
-                  }}
-                  onPointerDown={(e) => {
-                    if (zoomLevel <= BASE_ZOOM) {
-                      return;
-                    }
-
-                    zoomDragStart.current = {
-                      pointerId: e.pointerId,
-                      origin: { x: e.clientX, y: e.clientY },
-                      initialOffset: zoomOffset,
-                    };
-                    setIsDraggingZoomedImage(true);
-                  }}
-                  onPointerMove={(e) => {
-                    const dragState = zoomDragStart.current;
-                    if (!dragState || dragState.pointerId !== e.pointerId || zoomLevel <= BASE_ZOOM) {
-                      return;
-                    }
-
-                    setZoomOffset(
-                      clampOffset({
-                        x: dragState.initialOffset.x + (e.clientX - dragState.origin.x),
-                        y: dragState.initialOffset.y + (e.clientY - dragState.origin.y),
-                      })
-                    );
-                  }}
-                  onPointerUp={(e) => {
-                    if (zoomDragStart.current?.pointerId === e.pointerId) {
-                      zoomDragStart.current = null;
-                      setIsDraggingZoomedImage(false);
-                    }
-                  }}
-                  onPointerCancel={(e) => {
-                    if (zoomDragStart.current?.pointerId === e.pointerId) {
-                      zoomDragStart.current = null;
-                      setIsDraggingZoomedImage(false);
-                    }
-                  }}
-                  onTouchStart={(e) => {
-                    if (e.touches.length !== 2) {
-                      pinchState.current = null;
-                      return;
-                    }
-
-                    const [firstTouch, secondTouch] = Array.from(e.touches);
-                    const distance = Math.hypot(
-                      secondTouch.clientX - firstTouch.clientX,
-                      secondTouch.clientY - firstTouch.clientY
-                    );
-
-                    pinchState.current = {
-                      initialDistance: distance,
-                      initialZoom: zoomLevel,
-                      initialOffset: zoomOffset,
-                    };
-                  }}
-                  onTouchMove={(e) => {
-                    if (e.touches.length !== 2 || !pinchState.current) {
-                      return;
-                    }
-
-                    e.preventDefault();
-                    const [firstTouch, secondTouch] = Array.from(e.touches);
-                    const distance = Math.hypot(
-                      secondTouch.clientX - firstTouch.clientX,
-                      secondTouch.clientY - firstTouch.clientY
-                    );
-
-                    const nextZoom = pinchState.current.initialZoom * (distance / pinchState.current.initialDistance);
-                    updateZoom(nextZoom, pinchState.current.initialOffset);
-                  }}
-                  onTouchEnd={() => {
-                    if (pinchState.current && zoomLevel <= BASE_ZOOM) {
-                      setZoomOffset({ x: 0, y: 0 });
-                    }
-
-                    if (pinchState.current) {
-                      pinchState.current = null;
-                    }
-                  }}
-                >
-                  <img
-                    src={zoomedImage.src}
-                    alt={zoomedImage.title}
-                    className="h-auto max-w-none rounded-sm object-contain"
-                    decoding="async"
-                    onClick={(e) => e.stopPropagation()}
-                    onLoad={(e) => {
-                      setImageNaturalSize({
-                        width: e.currentTarget.naturalWidth || 1,
-                        height: e.currentTarget.naturalHeight || 1,
-                      });
-                    }}
-                    onDoubleClick={() => {
-                      if (zoomLevel > BASE_ZOOM) {
-                        updateZoom(BASE_ZOOM);
-                        return;
-                      }
-
-                      updateZoom(2);
-                    }}
-                    style={{
-                      width: `${Math.round(getFittedImageSize().baseWidth)}px`,
-                      maxHeight: BASE_IMAGE_MAX_HEIGHT,
-                      transform: `translate(${zoomOffset.x}px, ${zoomOffset.y}px) scale(${zoomLevel})`,
-                      transformOrigin: 'center center',
-                      transition: isDraggingZoomedImage ? 'none' : 'transform 0.18s ease-out',
-                      touchAction: 'none',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 };
