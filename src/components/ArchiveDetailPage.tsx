@@ -166,12 +166,14 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const BASE_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.25;
-  const BASE_IMAGE_WIDTH = 'min(900px, calc(100vw - 4rem))';
   const BASE_IMAGE_MAX_HEIGHT = 'calc(100vh - 120px)';
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(BASE_ZOOM);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
+  const [viewportWidth, setViewportWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1440
+  );
   const touchStartX = useRef<number | null>(null);
 
   const mediaItems: MediaItem[] =
@@ -266,6 +268,17 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [hasMultipleMedia, onClose, showNextMedia, showPreviousMedia, zoomedImage]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const baseZoomWidth = Math.max(280, Math.min(900, viewportWidth - 64));
 
   return (
     <motion.div
@@ -513,7 +526,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                 </div>
 
                 <div
-                  className={`relative flex min-h-full min-w-full px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
+                  className={`relative flex min-h-full min-w-full overflow-hidden px-4 pb-8 pt-6 md:px-8 md:pb-10 md:pt-8 ${
                     zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
                   }`}
                   onClick={(e) => e.stopPropagation()}
@@ -524,8 +537,8 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     className="h-auto max-w-none rounded-sm object-contain"
                     decoding="async"
                     style={{
-                      width: zoomLevel === BASE_ZOOM ? BASE_IMAGE_WIDTH : `calc(${BASE_IMAGE_WIDTH} * ${zoomLevel})`,
-                      minWidth: zoomLevel === BASE_ZOOM ? BASE_IMAGE_WIDTH : `calc(${BASE_IMAGE_WIDTH} * ${zoomLevel})`,
+                      width: `${Math.round(baseZoomWidth * zoomLevel)}px`,
+                      minWidth: `${Math.round(baseZoomWidth * zoomLevel)}px`,
                       maxHeight: zoomLevel === BASE_ZOOM ? BASE_IMAGE_MAX_HEIGHT : 'none',
                     }}
                   />
