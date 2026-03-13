@@ -369,7 +369,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
 
       <div className="relative flex min-h-screen items-start justify-center px-4 py-10 md:px-8 md:py-12">
         <article
-          className="mx-auto w-full max-w-6xl rounded-[28px] border border-white/12 bg-black/58 px-5 py-5 shadow-[0_35px_120px_rgba(0,0,0,0.38)] backdrop-blur-xl md:px-8 md:py-8"
+          className="mx-auto w-full max-w-6xl rounded-[28px] bg-black/52 px-5 py-5 shadow-[0_30px_110px_rgba(0,0,0,0.34),0_0_0_1px_rgba(255,255,255,0.035)] backdrop-blur-xl md:px-8 md:py-8"
           onClick={(e) => e.stopPropagation()}
         >
           <header className="mb-12">
