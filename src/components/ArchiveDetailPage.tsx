@@ -347,15 +347,29 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/35 backdrop-blur-[14px]"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/18 backdrop-blur-[18px]"
       onClick={onClose}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_42%),linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.55))]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.55),transparent_16%,transparent_84%,rgba(0,0,0,0.55))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_44%),linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.38))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.28),transparent_14%,transparent_86%,rgba(0,0,0,0.28))]" />
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="fixed right-4 top-24 z-[70] flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all hover:scale-[1.03] hover:bg-black/78 md:right-8 md:top-28 md:h-14 md:w-14"
+        aria-label="Close archive detail"
+      >
+        <span aria-hidden="true" className="text-[28px] leading-none md:text-[32px]">
+          ×
+        </span>
+      </button>
 
       <div className="relative flex min-h-screen items-start justify-center px-4 py-10 md:px-8 md:py-12">
         <article
-          className="mx-auto w-full max-w-6xl rounded-[28px] border border-white/10 bg-black/72 px-5 py-5 shadow-[0_35px_120px_rgba(0,0,0,0.45)] backdrop-blur-md md:px-8 md:py-8"
+          className="mx-auto w-full max-w-6xl rounded-[28px] border border-white/12 bg-black/58 px-5 py-5 shadow-[0_35px_120px_rgba(0,0,0,0.38)] backdrop-blur-xl md:px-8 md:py-8"
           onClick={(e) => e.stopPropagation()}
         >
           <header className="mb-12">

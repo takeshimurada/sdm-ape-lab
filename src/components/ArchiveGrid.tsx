@@ -20,6 +20,7 @@ export interface ArchiveItem {
 
 // Jon Rafman style Archive Grid - Text-based minimal list
 const ArchiveGrid: React.FC = () => {
+  const DETAIL_HISTORY_STATE_KEY = 'archiveDetailId';
   const [items, setItems] = React.useState<ArchiveItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedItem, setSelectedItem] = React.useState<ArchiveItem | null>(null);
@@ -99,8 +100,42 @@ const ArchiveGrid: React.FC = () => {
     } else {
       // 다른 타입은 상세 페이지 열기
       setSelectedItem(item);
+      window.history.pushState(
+        { ...window.history.state, [DETAIL_HISTORY_STATE_KEY]: item.id },
+        '',
+        `${window.location.pathname}${window.location.search}#archive-${item.id}`
+      );
     }
   };
+
+  const handleDetailClose = React.useCallback(() => {
+    const currentHistoryState = window.history.state as Record<string, unknown> | null;
+
+    if (currentHistoryState?.[DETAIL_HISTORY_STATE_KEY]) {
+      window.history.back();
+      return;
+    }
+
+    setSelectedItem(null);
+  }, []);
+
+  React.useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const nextState = event.state as Record<string, unknown> | null;
+      const nextDetailId = nextState?.[DETAIL_HISTORY_STATE_KEY];
+
+      if (!nextDetailId) {
+        setSelectedItem(null);
+        return;
+      }
+
+      const nextItem = items.find((entry) => entry.id === Number(nextDetailId)) ?? null;
+      setSelectedItem(nextItem);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [items]);
 
   if (loading) {
     return (
@@ -183,7 +218,7 @@ const ArchiveGrid: React.FC = () => {
         {selectedItem && (
           <ArchiveDetailPage 
             item={selectedItem} 
-            onClose={() => setSelectedItem(null)} 
+            onClose={handleDetailClose}
           />
         )}
       </AnimatePresence>
