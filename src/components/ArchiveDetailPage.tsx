@@ -497,11 +497,15 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   }
                 }}
               >
-                <div className="flex min-h-full min-w-full items-center justify-center p-4 md:p-8">
+                <div
+                  className={`flex min-h-full min-w-full p-4 md:p-8 ${
+                    zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
+                  }`}
+                >
                   <img
                     src={zoomedImage.src}
                     alt={zoomedImage.title}
-                    className="h-auto rounded-sm object-contain"
+                    className="h-auto max-w-none rounded-sm object-contain"
                     style={{
                       width: `${zoomLevel * 100}%`,
                       maxWidth: zoomLevel === BASE_ZOOM ? '1100px' : 'none',
