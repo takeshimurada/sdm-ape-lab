@@ -148,6 +148,9 @@ const MediaRenderer: React.FC<{
 };
 
 const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) => {
+  const BASE_ZOOM = 1;
+  const MAX_ZOOM = 4;
+  const ZOOM_STEP = 0.25;
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -156,10 +159,22 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
     setZoomLevel(1);
   };
 
-  const handleZoomChange = (delta: number) => {
+  const handleZoomIn = () => {
     setZoomLevel((prev) => {
-      const next = prev + delta;
-      return Math.min(4, Math.max(1, Number(next.toFixed(2))));
+      const next = prev + ZOOM_STEP;
+      return Math.min(MAX_ZOOM, Number(next.toFixed(2)));
+    });
+  };
+
+  const handleZoomOut = () => {
+    if (zoomLevel <= BASE_ZOOM) {
+      closeZoom();
+      return;
+    }
+
+    setZoomLevel((prev) => {
+      const next = prev - ZOOM_STEP;
+      return Math.max(BASE_ZOOM, Number(next.toFixed(2)));
     });
   };
   // ESC 키로 닫기
@@ -336,23 +351,22 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   </span>
                   <button
                     type="button"
-                    onClick={() => handleZoomChange(-0.25)}
-                    disabled={zoomLevel <= 1}
-                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={handleZoomOut}
+                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
                   >
                     -
                   </button>
                   <button
                     type="button"
-                    onClick={() => setZoomLevel(1)}
+                    onClick={() => setZoomLevel(BASE_ZOOM)}
                     className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
                   >
                     Reset
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleZoomChange(0.25)}
-                    disabled={zoomLevel >= 4}
+                    onClick={handleZoomIn}
+                    disabled={zoomLevel >= MAX_ZOOM}
                     className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     +
@@ -371,7 +385,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                 className="flex-1 overflow-auto"
                 onWheel={(e) => {
                   e.preventDefault();
-                  handleZoomChange(e.deltaY < 0 ? 0.25 : -0.25);
+                  if (e.deltaY < 0) {
+                    handleZoomIn();
+                  } else {
+                    handleZoomOut();
+                  }
                 }}
               >
                 <div className="flex min-h-full min-w-full items-center justify-center p-4 md:p-8">
@@ -381,7 +399,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     className="h-auto rounded-sm object-contain"
                     style={{
                       width: `${zoomLevel * 100}%`,
-                      maxWidth: zoomLevel === 1 ? '1100px' : 'none',
+                      maxWidth: zoomLevel === BASE_ZOOM ? '1100px' : 'none',
                     }}
                   />
                 </div>
