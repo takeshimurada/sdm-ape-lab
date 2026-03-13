@@ -157,7 +157,9 @@ const MediaRenderer: React.FC<{
 
     return (
       <div className="mb-8 w-full">
-        <div className="mb-3 flex items-center justify-end gap-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-white/60">Use + / - buttons to zoom.</p>
+          <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onZoomOut}
@@ -177,6 +179,7 @@ const MediaRenderer: React.FC<{
           >
             +
           </button>
+          </div>
         </div>
 
         <div
@@ -198,10 +201,6 @@ const MediaRenderer: React.FC<{
             />
           </div>
         </div>
-
-        <p className="mt-2 text-right text-xs text-white/60">
-          Use + / - buttons to zoom. Scroll to move when enlarged.
-        </p>
       </div>
     );
   }
