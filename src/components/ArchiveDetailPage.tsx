@@ -404,12 +404,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
             >
               {hasMultipleMedia && currentMedia ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between gap-4 text-xs text-white/60">
-                    <p>
-                      {zoomLevel > BASE_ZOOM && currentMedia.type === 'image'
-                        ? 'Scroll to move the enlarged image'
-                        : 'Swipe or use arrows to browse'}
-                    </p>
+                  <div className="flex items-center justify-end gap-4 text-xs text-white/60">
                     <p className="font-mono">
                       {currentMediaIndex + 1} / {mediaItems.length}
                     </p>
