@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Archive item type definition - 블로그 스타일
@@ -153,6 +153,9 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const ZOOM_STEP = 0.25;
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
+  const touchStartX = useRef<number | null>(null);
 
   const closeZoom = () => {
     setZoomedImage(null);
@@ -180,18 +183,31 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   // ESC 키로 닫기
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+      if (e.key === 'Escape') {
+        if (zoomedImage) {
+          closeZoom();
+          return;
+        }
 
-      if (zoomedImage) {
-        closeZoom();
+        onClose();
         return;
       }
 
-      onClose();
+      if (zoomedImage || !hasMultipleMedia) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        showPreviousMedia();
+      }
+
+      if (e.key === 'ArrowRight') {
+        showNextMedia();
+      }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose, zoomedImage]);
+  }, [hasMultipleMedia, onClose, zoomedImage, currentMediaIndex]);
 
   // 미디어 배열 (media 필드 우선, 없으면 url 사용)
   const mediaItems = item.type !== 'text'
@@ -200,6 +216,25 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
         ...(item.media || []),
       ]
     : [];
+  const hasMultipleMedia = mediaItems.length > 1;
+  const currentMedia = mediaItems[currentMediaIndex] || null;
+
+  const moveToMedia = (nextIndex: number) => {
+    if (nextIndex < 0 || nextIndex >= mediaItems.length || nextIndex === currentMediaIndex) {
+      return;
+    }
+
+    setSlideDirection(nextIndex > currentMediaIndex ? 1 : -1);
+    setCurrentMediaIndex(nextIndex);
+  };
+
+  const showPreviousMedia = () => moveToMedia(currentMediaIndex - 1);
+  const showNextMedia = () => moveToMedia(currentMediaIndex + 1);
+
+  useEffect(() => {
+    setCurrentMediaIndex(0);
+    setSlideDirection(1);
+  }, [item.id, item.url, item.media]);
 
   return (
     <motion.div
@@ -255,18 +290,110 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               transition={{ delay: 0.3 }}
               className="mb-12"
             >
-              {mediaItems.map((media, index) => (
-                <MediaRenderer
-                  key={index}
-                  type={media.type}
-                  url={media.url}
-                  title={item.title}
-                  onOpenImage={(src, title) => {
-                    setZoomedImage({ src, title });
-                    setZoomLevel(1);
-                  }}
-                />
-              ))}
+              {hasMultipleMedia && currentMedia ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4 text-xs text-white/60">
+                    <p>Swipe or use arrows to browse</p>
+                    <p className="font-mono">
+                      {currentMediaIndex + 1} / {mediaItems.length}
+                    </p>
+                  </div>
+
+                  <div
+                    className="relative overflow-hidden"
+                    onTouchStart={(e) => {
+                      touchStartX.current = e.touches[0]?.clientX ?? null;
+                    }}
+                    onTouchEnd={(e) => {
+                      const startX = touchStartX.current;
+                      const endX = e.changedTouches[0]?.clientX ?? null;
+                      touchStartX.current = null;
+
+                      if (startX === null || endX === null) {
+                        return;
+                      }
+
+                      const distance = endX - startX;
+
+                      if (distance <= -50) {
+                        showNextMedia();
+                      }
+
+                      if (distance >= 50) {
+                        showPreviousMedia();
+                      }
+                    }}
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={`${currentMediaIndex}-${currentMedia.url}`}
+                        initial={{ opacity: 0, x: slideDirection * 80 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: slideDirection * -80 }}
+                        transition={{ duration: 0.28, ease: 'easeOut' }}
+                      >
+                        <MediaRenderer
+                          type={currentMedia.type}
+                          url={currentMedia.url}
+                          title={item.title}
+                          onOpenImage={(src, title) => {
+                            setZoomedImage({ src, title });
+                            setZoomLevel(BASE_ZOOM);
+                          }}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+
+                    <button
+                      type="button"
+                      onClick={showPreviousMedia}
+                      disabled={currentMediaIndex === 0}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label="Previous media"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      onClick={showNextMedia}
+                      disabled={currentMediaIndex === mediaItems.length - 1}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-black/45 px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                      aria-label="Next media"
+                    >
+                      →
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {mediaItems.map((media, index) => (
+                      <button
+                        key={`${media.url}-${index}`}
+                        type="button"
+                        onClick={() => moveToMedia(index)}
+                        className={`h-2.5 rounded-full transition-all ${
+                          index === currentMediaIndex
+                            ? 'w-8 bg-white'
+                            : 'w-2.5 bg-white/25 hover:bg-white/45'
+                        }`}
+                        aria-label={`Go to media ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                mediaItems.map((media, index) => (
+                  <MediaRenderer
+                    key={index}
+                    type={media.type}
+                    url={media.url}
+                    title={item.title}
+                    onOpenImage={(src, title) => {
+                      setZoomedImage({ src, title });
+                      setZoomLevel(BASE_ZOOM);
+                    }}
+                  />
+                ))
+              )}
             </motion.div>
           )}
 
