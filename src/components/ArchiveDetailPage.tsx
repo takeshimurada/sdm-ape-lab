@@ -154,7 +154,7 @@ const MediaRenderer: React.FC<{
             style={{ maxHeight: '90vh', objectFit: 'contain' }}
           />
         </button>
-        <p className="mt-2 text-right text-xs text-white/60">Click image to zoom</p>
+        <p className="mt-2 text-right text-xs text-white/60">Click image to open. Use buttons to zoom.</p>
       </div>
     );
   }
@@ -474,8 +474,11 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
             className="fixed inset-0 z-[80] bg-black/95"
             onClick={closeZoom}
           >
-            <div className="flex h-full flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+            <div className="flex h-full flex-col">
+              <div
+                className="flex items-center justify-between border-b border-white/10 px-4 py-3"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <p className="truncate pr-4 text-xs text-white/70">{zoomedImage.title}</p>
                 <div className="flex items-center gap-2">
                   <span className="min-w-14 text-center text-xs font-mono text-white/70">
@@ -518,6 +521,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   className={`flex min-h-full min-w-full p-4 md:p-8 ${
                     zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
                   }`}
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <img
                     src={zoomedImage.src}
