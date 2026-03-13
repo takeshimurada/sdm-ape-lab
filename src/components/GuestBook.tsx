@@ -151,21 +151,21 @@ const GuestBook: React.FC = () => {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <p className="text-white/60 text-sm">Loading...</p>
+        <p className="text-white/70 text-sm">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="fixed inset-0 bg-black overflow-y-auto">
-      <div className="min-h-screen pt-24 pb-12 px-6">
+      <div className="min-h-screen pt-36 sm:pt-40 pb-12 px-6">
         {/* Instructions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto mb-8"
         >
-          <p className="text-white/40 text-xs leading-relaxed text-center italic">
+          <p className="text-white/60 text-xs leading-relaxed text-center italic">
             {getInstructions()}
           </p>
         </motion.div>
@@ -185,7 +185,7 @@ const GuestBook: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Name"
                 maxLength={50}
-                className="w-full bg-transparent border-b border-white/10 py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors text-sm"
+                className="w-full bg-transparent border-b border-white/20 py-4 text-white placeholder-white/50 focus:outline-none focus:border-white/50 transition-colors text-sm"
                 disabled={submitting}
               />
             </div>
@@ -197,7 +197,7 @@ const GuestBook: React.FC = () => {
                 placeholder="Leave a message..."
                 maxLength={500}
                 rows={4}
-                className="w-full bg-transparent border-b border-white/10 py-4 text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors resize-none text-sm"
+                className="w-full bg-transparent border-b border-white/20 py-4 text-white placeholder-white/50 focus:outline-none focus:border-white/50 transition-colors resize-none text-sm"
                 disabled={submitting}
               />
             </div>
@@ -223,7 +223,7 @@ const GuestBook: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="px-8 py-3 border border-white/20 text-white/80 hover:bg-white/5 hover:text-white transition-all text-xs tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-8 py-3 border border-white/30 text-white/90 hover:bg-white/10 hover:text-white transition-all text-xs tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting...' : 'communicate'}
             </button>
@@ -243,11 +243,11 @@ const GuestBook: React.FC = () => {
               >
                 <div className="flex items-baseline justify-between mb-2">
                   <span className="text-white text-sm font-medium">{entry.name}</span>
-                  <span className="text-white/30 text-xs">
+                  <span className="text-white/60 text-xs">
                     {entry.date} {entry.time && entry.time}
                   </span>
                 </div>
-                <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
+                <p className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap">
                   {entry.message}
                 </p>
               </motion.div>
@@ -255,7 +255,7 @@ const GuestBook: React.FC = () => {
           </AnimatePresence>
 
           {entries.length === 0 && (
-            <p className="text-center text-white/30 text-sm py-12">
+            <p className="text-center text-white/50 text-sm py-12">
               첫 번째 방명록을 남겨주세요.
             </p>
           )}

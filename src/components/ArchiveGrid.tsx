@@ -105,7 +105,7 @@ const ArchiveGrid: React.FC = () => {
   if (loading) {
     return (
       <div className="w-full min-h-screen bg-black flex items-center justify-center">
-        <p className="text-gray-500 font-mono text-sm">Loading...</p>
+        <p className="text-white/70 font-mono text-sm">Loading...</p>
       </div>
     );
   }
@@ -115,12 +115,12 @@ const ArchiveGrid: React.FC = () => {
       <div className="w-full min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <p 
-            className="text-gray-600 text-sm"
+            className="text-white/60 text-sm"
             style={{ fontFamily: 'Dotum, "돋움", sans-serif' }}
           >
             아직 프로젝트가 없습니다.
           </p>
-          <p className="text-xs text-gray-700 mt-2 font-mono">
+          <p className="text-xs text-white/50 mt-2 font-mono">
             Press Ctrl+Shift+A
           </p>
         </div>
@@ -151,13 +151,13 @@ const ArchiveGrid: React.FC = () => {
               >
                 <div className="flex items-baseline gap-3">
                   {/* Icon */}
-                  <span className="text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0 text-sm">
+                  <span className="text-white/60 group-hover:text-white transition-colors flex-shrink-0 text-sm">
                     {getIcon(item.type)}
                   </span>
                   
                   {/* Title */}
                   <span 
-                    className="text-sm md:text-base text-white/70 group-hover:text-white transition-all duration-150"
+                    className="text-sm md:text-base text-white/85 group-hover:text-white transition-all duration-150"
                     style={{ 
                       fontFamily: /[\u3131-\uD79D]/.test(item.title) 
                         ? 'Dotum, "돋움", sans-serif' 
@@ -168,7 +168,7 @@ const ArchiveGrid: React.FC = () => {
                   </span>
                   
                   {/* Year */}
-                  <span className="text-xs text-gray-600 ml-auto flex-shrink-0 font-mono">
+                  <span className="text-xs text-white/60 ml-auto flex-shrink-0 font-mono">
                     {item.year}
                   </span>
                 </div>

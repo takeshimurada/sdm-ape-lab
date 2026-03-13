@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Archive item type definition - 블로그 스타일
 export interface ArchiveItem {
@@ -86,7 +86,12 @@ const normalizeUrl = (url: string): string => {
 };
 
 // 미디어 렌더러
-const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({ type, url, title }) => {
+const MediaRenderer: React.FC<{
+  type: string;
+  url: string;
+  title: string;
+  onOpenImage?: (src: string, title: string) => void;
+}> = ({ type, url, title, onOpenImage }) => {
   if (type === 'youtube') {
     const embedUrl = getYouTubeEmbedUrl(url);
     return (
@@ -122,12 +127,19 @@ const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({
     const normalizedUrl = normalizeUrl(url);
     return (
       <div className="w-full mb-8">
-        <img
-          src={normalizedUrl}
-          alt={title}
-          className="w-full rounded-sm"
-          style={{ maxHeight: '90vh', objectFit: 'contain' }}
-        />
+        <button
+          type="button"
+          onClick={() => onOpenImage?.(normalizedUrl, title)}
+          className="block w-full cursor-zoom-in"
+        >
+          <img
+            src={normalizedUrl}
+            alt={title}
+            className="w-full rounded-sm"
+            style={{ maxHeight: '90vh', objectFit: 'contain' }}
+          />
+        </button>
+        <p className="mt-2 text-right text-xs text-white/60">Click image to zoom</p>
       </div>
     );
   }
@@ -136,21 +148,43 @@ const MediaRenderer: React.FC<{ type: string; url: string; title: string }> = ({
 };
 
 const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) => {
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  const closeZoom = () => {
+    setZoomedImage(null);
+    setZoomLevel(1);
+  };
+
+  const handleZoomChange = (delta: number) => {
+    setZoomLevel((prev) => {
+      const next = prev + delta;
+      return Math.min(4, Math.max(1, Number(next.toFixed(2))));
+    });
+  };
   // ESC 키로 닫기
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Escape') return;
+
+      if (zoomedImage) {
+        closeZoom();
+        return;
+      }
+
+      onClose();
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
+  }, [onClose, zoomedImage]);
 
   // 미디어 배열 (media 필드 우선, 없으면 url 사용)
-  const mediaItems = item.media && item.media.length > 0 
-    ? item.media 
-    : item.type !== 'text' 
-      ? [{ type: item.type, url: item.url }] 
-      : [];
+  const mediaItems = item.type !== 'text'
+    ? [
+        ...(item.url ? [{ type: item.type, url: item.url }] : []),
+        ...(item.media || []),
+      ]
+    : [];
 
   return (
     <motion.div
@@ -173,7 +207,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="flex items-center gap-4 text-sm text-gray-500 mb-6"
+              className="flex items-center gap-4 text-sm text-white/60 mb-6"
             >
               <span className="font-mono">{item.year}</span>
               {item.tags && item.tags.length > 0 && (
@@ -212,6 +246,10 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                   type={media.type}
                   url={media.url}
                   title={item.title}
+                  onOpenImage={(src, title) => {
+                    setZoomedImage({ src, title });
+                    setZoomLevel(1);
+                  }}
                 />
               ))}
             </motion.div>
@@ -226,7 +264,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               className="prose prose-invert prose-sm md:prose-base max-w-none mb-12"
             >
               <p 
-                className="text-white/80 leading-relaxed whitespace-pre-wrap"
+                className="text-white/90 leading-relaxed whitespace-pre-wrap"
                 style={{ 
                   fontFamily: /[\u3131-\uD79D]/.test(item.description) 
                     ? 'Dotum, "돋움", sans-serif' 
@@ -249,7 +287,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
               className="prose prose-invert prose-sm md:prose-base max-w-none mb-12"
             >
               <div 
-                className="text-white/70 leading-relaxed whitespace-pre-wrap"
+                className="text-white/80 leading-relaxed whitespace-pre-wrap"
                 style={{ 
                   fontFamily: /[\u3131-\uD79D]/.test(item.content) 
                     ? 'Dotum, "돋움", sans-serif' 
@@ -272,13 +310,86 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
           >
             <button
               onClick={onClose}
-              className="text-white/40 hover:text-white/80 transition-colors text-sm font-mono"
+              className="text-white/60 hover:text-white transition-colors text-sm font-mono"
             >
               ← back
             </button>
           </motion.div>
         </article>
       </div>
+
+      <AnimatePresence>
+        {zoomedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] bg-black/95"
+            onClick={closeZoom}
+          >
+            <div className="flex h-full flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <p className="truncate pr-4 text-xs text-white/70">{zoomedImage.title}</p>
+                <div className="flex items-center gap-2">
+                  <span className="min-w-14 text-center text-xs font-mono text-white/70">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleZoomChange(-0.25)}
+                    disabled={zoomLevel <= 1}
+                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    -
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoomLevel(1)}
+                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleZoomChange(0.25)}
+                    disabled={zoomLevel >= 4}
+                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeZoom}
+                    className="rounded border border-white/15 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/10"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+
+              <div
+                className="flex-1 overflow-auto"
+                onWheel={(e) => {
+                  e.preventDefault();
+                  handleZoomChange(e.deltaY < 0 ? 0.25 : -0.25);
+                }}
+              >
+                <div className="flex min-h-full min-w-full items-center justify-center p-4 md:p-8">
+                  <img
+                    src={zoomedImage.src}
+                    alt={zoomedImage.title}
+                    className="h-auto rounded-sm object-contain"
+                    style={{
+                      width: `${zoomLevel * 100}%`,
+                      maxWidth: zoomLevel === 1 ? '1100px' : 'none',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

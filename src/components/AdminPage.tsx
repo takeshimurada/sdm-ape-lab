@@ -17,6 +17,11 @@ interface ArchiveItem {
   content?: string;
 }
 
+type ArchiveMediaItem = {
+  type: 'image' | 'video' | 'youtube';
+  url: string;
+};
+
 // YouTube URL에서 비디오 ID 추출
 const getYouTubeVideoId = (url: string): string | null => {
   const patterns = [
@@ -72,7 +77,73 @@ const getArchiveBackendUrl = () => {
   }
 };
 
+const getPrimaryMediaType = (item: ArchiveItem): ArchiveMediaItem['type'] => {
+  if (item.type === 'video' || item.type === 'youtube') {
+    return item.type;
+  }
+
+  return 'image';
+};
+
+const getOrderedMedia = (item: ArchiveItem): ArchiveMediaItem[] => {
+  if (item.type === 'text' || item.type === 'website') {
+    return [];
+  }
+
+  const orderedMedia: ArchiveMediaItem[] = [];
+
+  if (item.url) {
+    orderedMedia.push({
+      type: getPrimaryMediaType(item),
+      url: item.url,
+    });
+  }
+
+  if (item.media && item.media.length > 0) {
+    orderedMedia.push(...item.media);
+  }
+
+  return orderedMedia;
+};
+
+const applyOrderedMedia = (item: ArchiveItem, orderedMedia: ArchiveMediaItem[]): ArchiveItem => {
+  if (item.type === 'text' || item.type === 'website') {
+    return item;
+  }
+
+  const [primaryMedia, ...restMedia] = orderedMedia;
+
+  return {
+    ...item,
+    url: primaryMedia?.url || '',
+    media: restMedia,
+  };
+};
+
 // Guestbook 엔트리 타입
+const AdminMediaPreview: React.FC<{ media: ArchiveMediaItem; label: string }> = ({ media, label }) => {
+  if (media.type === 'video') {
+    return (
+      <video
+        src={media.url}
+        className="h-14 w-14 rounded object-cover bg-black"
+        muted
+        playsInline
+        preload="metadata"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={media.url}
+      alt={label}
+      className="h-14 w-14 rounded object-cover bg-black"
+      loading="lazy"
+    />
+  );
+};
+
 interface GuestBookEntry {
   id: number;
   name: string;
@@ -298,8 +369,7 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     setMessage(`📤 ${files.length}개 파일 업로드 중...`);
 
     try {
-      const uploadedUrls: string[] = [];
-      const mediaArray: Array<{ type: 'image' | 'video'; url: string }> = [];
+      const uploadedMedia: ArchiveMediaItem[] = [];
 
       // 여러 파일 순차 업로드
       for (let i = 0; i < files.length; i++) {
@@ -323,11 +393,10 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             fileUrl = result.url;
           }
           
-          uploadedUrls.push(fileUrl);
           
           // 미디어 타입 결정
           const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
-          mediaArray.push({ type: mediaType, url: fileUrl });
+          uploadedMedia.push({ type: mediaType, url: fileUrl });
         } else {
           const errorData = await res.json().catch(() => ({ error: '업로드 실패' }));
           console.error(`❌ Upload failed for ${file.name}:`, errorData);
@@ -336,14 +405,12 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
       }
 
       // 첫 번째 파일을 메인 URL로, 나머지는 media 배열에
-      const mainUrl = uploadedUrls[0];
-      const additionalMedia = uploadedUrls.slice(1).map((url, idx) => mediaArray[idx + 1]);
+      const currentOrderedMedia = getOrderedMedia(editingItem);
+      const nextOrderedMedia = currentOrderedMedia.length > 0
+        ? [...currentOrderedMedia, ...uploadedMedia]
+        : uploadedMedia;
 
-      setEditingItem({ 
-        ...editingItem, 
-        url: mainUrl,
-        media: [...(editingItem.media || []), ...additionalMedia]
-      });
+      setEditingItem(applyOrderedMedia(editingItem, nextOrderedMedia));
       
       setMessage(`✅ ${files.length}개 파일 업로드 완료!`);
       setTimeout(() => setMessage(''), 3000);
@@ -405,6 +472,35 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     
     setMessage('🗑️ 삭제 완료!');
     setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleMoveMedia = (fromIndex: number, toIndex: number) => {
+    if (!editingItem) return;
+
+    const orderedMedia = getOrderedMedia(editingItem);
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= orderedMedia.length ||
+      toIndex >= orderedMedia.length
+    ) {
+      return;
+    }
+
+    const nextOrderedMedia = [...orderedMedia];
+    const [movedMedia] = nextOrderedMedia.splice(fromIndex, 1);
+    nextOrderedMedia.splice(toIndex, 0, movedMedia);
+
+    setEditingItem(applyOrderedMedia(editingItem, nextOrderedMedia));
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    if (!editingItem) return;
+
+    const orderedMedia = getOrderedMedia(editingItem);
+    const nextOrderedMedia = orderedMedia.filter((_, mediaIndex) => mediaIndex !== index);
+
+    setEditingItem(applyOrderedMedia(editingItem, nextOrderedMedia));
   };
 
   return (
@@ -765,6 +861,67 @@ const AdminPage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 )}
 
                 {/* URL - 텍스트 타입이 아닐 때만 표시 */}
+                {editingItem.type !== 'youtube' && editingItem.type !== 'website' && editingItem.type !== 'text' && getOrderedMedia(editingItem).length > 0 && (
+                  <div className="mb-4">
+                    <label
+                      className="block text-gray-400 text-sm mb-2"
+                      style={{ fontFamily: 'Dotum, sans-serif' }}
+                    >
+                      Media Order
+                    </label>
+                    <div className="space-y-2">
+                      {getOrderedMedia(editingItem).map((media, index, mediaList) => (
+                        <div
+                          key={`${media.url}-${index}`}
+                          className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-950 px-3 py-3"
+                        >
+                          <AdminMediaPreview
+                            media={media}
+                            label={`${editingItem.title || 'media'}-${index + 1}`}
+                          />
+                          <span className="w-8 flex-shrink-0 text-xs font-mono text-gray-500">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-pink-400">
+                              {index === 0 ? 'Cover' : 'Media'}
+                            </p>
+                            <p className="truncate text-sm text-white/80">{media.url}</p>
+                          </div>
+                          <div className="flex flex-shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveMedia(index, index - 1)}
+                              disabled={index === 0}
+                              className="rounded bg-gray-800 px-3 py-1 text-xs text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              Up
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveMedia(index, index + 1)}
+                              disabled={index === mediaList.length - 1}
+                              className="rounded bg-gray-800 px-3 py-1 text-xs text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              Down
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedia(index)}
+                              className="rounded bg-red-900/70 px-3 py-1 text-xs text-white transition-colors hover:bg-red-800"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      The first item becomes the cover and appears first in the detail view.
+                    </p>
+                  </div>
+                )}
+
                 {editingItem.type !== 'text' && (
                   <div className="mb-4">
                     <label 

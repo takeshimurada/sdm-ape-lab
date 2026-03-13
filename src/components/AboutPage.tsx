@@ -238,7 +238,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                   <motion.div 
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
-                    className="h-[1px] w-16 bg-gradient-to-r from-transparent via-gray-500 to-transparent mx-auto origin-center opacity-30" 
+                    className="h-[1px] w-16 bg-gradient-to-r from-transparent via-white/70 to-transparent mx-auto origin-center opacity-60" 
                   />
                 )}
               </motion.div>
@@ -280,8 +280,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ modelUrl, showDetails, text, isTr
                         display: 'inline-block',
                         fontWeight: 900,
                         letterSpacing: '-0.05em',
-                        color: isHoveringBtn ? '#2a2a2a' : '#1a1a1a',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                        color: isHoveringBtn ? '#f0f0f0' : '#b8b8b8',
+                        textShadow: isHoveringBtn
+                          ? '0 0 10px rgba(255,255,255,0.35), 0 2px 10px rgba(0,0,0,0.45)'
+                          : '0 1px 6px rgba(0,0,0,0.5)',
                       }}
                     >
                       ?????
