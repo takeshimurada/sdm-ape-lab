@@ -158,6 +158,8 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   const BASE_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ZOOM_STEP = 0.25;
+  const BASE_IMAGE_MAX_WIDTH = 900;
+  const BASE_IMAGE_MAX_HEIGHT = 'calc(100vh - 120px)';
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
   const [zoomLevel, setZoomLevel] = useState(BASE_ZOOM);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -485,18 +487,7 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                 </div>
               </div>
 
-              <div
-                className="flex-1 overflow-auto"
-                onWheel={(e) => {
-                  e.preventDefault();
-
-                  if (e.deltaY < 0) {
-                    handleZoomIn();
-                  } else {
-                    handleZoomOut();
-                  }
-                }}
-              >
+              <div className="flex-1 overflow-auto">
                 <div
                   className={`flex min-h-full min-w-full p-4 md:p-8 ${
                     zoomLevel > BASE_ZOOM ? 'items-start justify-start' : 'items-center justify-center'
@@ -507,8 +498,9 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     alt={zoomedImage.title}
                     className="h-auto max-w-none rounded-sm object-contain"
                     style={{
-                      width: `${zoomLevel * 100}%`,
-                      maxWidth: zoomLevel === BASE_ZOOM ? '1100px' : 'none',
+                      width: zoomLevel === BASE_ZOOM ? 'auto' : `${zoomLevel * 100}%`,
+                      maxWidth: zoomLevel === BASE_ZOOM ? `${BASE_IMAGE_MAX_WIDTH}px` : 'none',
+                      maxHeight: zoomLevel === BASE_ZOOM ? BASE_IMAGE_MAX_HEIGHT : 'none',
                     }}
                   />
                 </div>
