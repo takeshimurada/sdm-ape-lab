@@ -111,6 +111,14 @@ const MediaRenderer: React.FC<{
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   onImageLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+  imageContainerRef?: React.RefObject<HTMLDivElement | null>;
+  isImagePannable?: boolean;
+  onImagePointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onImagePointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onImagePointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onImagePointerCancel?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onImageTouchStart?: (e: React.TouchEvent<HTMLDivElement>) => void;
+  onImageTouchEnd?: (e: React.TouchEvent<HTMLDivElement>) => void;
 }> = ({
   type,
   url,
@@ -122,6 +130,14 @@ const MediaRenderer: React.FC<{
   onZoomIn,
   onZoomOut,
   onImageLoad,
+  imageContainerRef,
+  isImagePannable = false,
+  onImagePointerDown,
+  onImagePointerMove,
+  onImagePointerUp,
+  onImagePointerCancel,
+  onImageTouchStart,
+  onImageTouchEnd,
 }) => {
   if (type === 'youtube') {
     return (
@@ -183,10 +199,21 @@ const MediaRenderer: React.FC<{
         </div>
 
         <div
-          className="overflow-auto rounded-sm bg-black/35"
+          ref={imageContainerRef}
+          className={`overflow-auto rounded-sm bg-black/35 ${
+            isImagePannable ? 'cursor-grab active:cursor-grabbing select-none' : ''
+          }`}
           style={{ maxHeight: '85vh' }}
+          onPointerDown={onImagePointerDown}
+          onPointerMove={onImagePointerMove}
+          onPointerUp={onImagePointerUp}
+          onPointerCancel={onImagePointerCancel}
+          onTouchStart={onImageTouchStart}
+          onTouchEnd={onImageTouchEnd}
         >
-          <div className="flex min-w-full justify-center">
+          <div
+            className={isImagePannable ? 'w-max min-w-0' : 'flex min-w-full justify-center'}
+          >
             <img
               src={normalizedUrl}
               alt={title}
@@ -223,6 +250,15 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
   );
   const [imageNaturalSize, setImageNaturalSize] = useState({ width: 1, height: 1 });
   const touchStartX = useRef<number | null>(null);
+  const imageScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const dragScrollState = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    scrollLeft: number;
+    scrollTop: number;
+  } | null>(null);
+  const previousZoomLevel = useRef(BASE_ZOOM);
 
   const mediaItems: MediaItem[] =
     item.type !== 'text'
@@ -339,6 +375,73 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const container = imageScrollContainerRef.current;
+
+    if (!container || currentMedia?.type !== 'image') {
+      previousZoomLevel.current = zoomLevel;
+      return;
+    }
+
+    if (zoomLevel <= BASE_ZOOM) {
+      container.scrollLeft = 0;
+      container.scrollTop = 0;
+    } else if (previousZoomLevel.current <= BASE_ZOOM) {
+      requestAnimationFrame(() => {
+        container.scrollLeft = Math.max(0, (container.scrollWidth - container.clientWidth) / 2);
+        container.scrollTop = Math.max(0, (container.scrollHeight - container.clientHeight) / 2);
+      });
+    }
+
+    previousZoomLevel.current = zoomLevel;
+  }, [BASE_ZOOM, currentMedia?.type, currentMediaIndex, zoomLevel]);
+
+  const handleImagePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (zoomLevel <= BASE_ZOOM) {
+      return;
+    }
+
+    if (e.pointerType === 'mouse' && e.button !== 0) {
+      return;
+    }
+
+    dragScrollState.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      scrollLeft: e.currentTarget.scrollLeft,
+      scrollTop: e.currentTarget.scrollTop,
+    };
+
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleImagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragScrollState.current;
+
+    if (!dragState || dragState.pointerId !== e.pointerId || zoomLevel <= BASE_ZOOM) {
+      return;
+    }
+
+    e.preventDefault();
+    e.currentTarget.scrollLeft = dragState.scrollLeft - (e.clientX - dragState.startX);
+    e.currentTarget.scrollTop = dragState.scrollTop - (e.clientY - dragState.startY);
+  };
+
+  const clearImageDragState = (e?: React.PointerEvent<HTMLDivElement>) => {
+    if (e && dragScrollState.current?.pointerId === e.pointerId) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+
+    dragScrollState.current = null;
+  };
+
+  const stopImageSwipePropagation = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (zoomLevel > BASE_ZOOM) {
+      e.stopPropagation();
+    }
+  };
+
   const imageDisplayWidth = currentMedia?.type === 'image' ? getFittedImageSize().width : undefined;
 
   return (
@@ -452,6 +555,14 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                           imageWidth={imageDisplayWidth}
                           onZoomIn={handleZoomIn}
                           onZoomOut={handleZoomOut}
+                          imageContainerRef={imageScrollContainerRef}
+                          isImagePannable={currentMedia.type === 'image' && zoomLevel > BASE_ZOOM}
+                          onImagePointerDown={handleImagePointerDown}
+                          onImagePointerMove={handleImagePointerMove}
+                          onImagePointerUp={clearImageDragState}
+                          onImagePointerCancel={clearImageDragState}
+                          onImageTouchStart={stopImageSwipePropagation}
+                          onImageTouchEnd={stopImageSwipePropagation}
                           onImageLoad={(e) => {
                             setImageNaturalSize({
                               width: e.currentTarget.naturalWidth || 1,
@@ -511,6 +622,14 @@ const ArchiveDetailPage: React.FC<ArchiveDetailPageProps> = ({ item, onClose }) 
                     imageWidth={media.type === 'image' ? imageDisplayWidth : undefined}
                     onZoomIn={handleZoomIn}
                     onZoomOut={handleZoomOut}
+                    imageContainerRef={imageScrollContainerRef}
+                    isImagePannable={media.type === 'image' && zoomLevel > BASE_ZOOM}
+                    onImagePointerDown={handleImagePointerDown}
+                    onImagePointerMove={handleImagePointerMove}
+                    onImagePointerUp={clearImageDragState}
+                    onImagePointerCancel={clearImageDragState}
+                    onImageTouchStart={stopImageSwipePropagation}
+                    onImageTouchEnd={stopImageSwipePropagation}
                     onImageLoad={(e) => {
                       setImageNaturalSize({
                         width: e.currentTarget.naturalWidth || 1,
